@@ -26,16 +26,25 @@
 数据存储严格分离：
 - 官方数据 `~/.claude/history.jsonl` 为只读
 - 应用数据存储在 `~/.claude-memo/`
-- 禁止修改原始历史记录文件
 
-### IV. CLI-First Interface
+### IV. Immutable Source Data (NON-NEGOTIABLE)
+
+**绝对禁止修改用户原始数据目录**：
+- `~/.claude/` 目录下的所有文件均为只读
+- 禁止对该目录进行写入、删除、修改操作
+- 禁止创建、修改或删除任何文件或子目录
+- 只读操作包括：解析、索引、搜索
+
+违反此原则的代码不得合并。
+
+### V. CLI-First Interface
 
 CLI 是主要交互方式：
 - 支持交互式模式（fzf 风格）和非交互模式
 - 输出格式：文本为主，支持 JSON 导出
 - 错误信息必须清晰、 actionable
 
-### V. Minimalist Design (YAGNI)
+### VI. Minimalist Design (YAGNI)
 
 避免过度设计：
 - 只实现当前阶段必需的功能
@@ -95,4 +104,4 @@ CLI 是主要交互方式：
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
+**Version**: 1.1.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
