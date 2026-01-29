@@ -1,24 +1,22 @@
 <!--
 Sync Impact Report
 ==================
-Version Change: 1.1.0 → 1.2.0
+Version Change: 1.2.0 → 1.3.0
 
 Modified Principles:
-- I. Test-First (ENHANCED) → Now explicitly requires TDD workflow with detailed steps
-- II. Incremental Implementation → Minor wording clarification
-- IV. Immutable Source Data → Added explicit violation consequences
+- I. Test-First Development (ENHANCED) → Added integration test requirements
 
 Added Sections:
-- TDD Workflow Details (new subsection under Test-First)
-- TDD Compliance Checklist (new)
-- Feature Implementation Checklist (new)
+- Integration Test Requirements (new subsection)
+- CLI Integration Tests requirement
+- End-to-end workflow tests
 
 Removed Sections: None
 
 Templates Status:
-- ✅ plan-template.md - Already has "Constitution Check" section, no update needed
+- ✅ plan-template.md - Already has "Constitution Check" section
 - ✅ spec-template.md - Already has "User Scenarios & Testing" mandatory section
-- ✅ tasks-template.md - Already emphasizes "Tests MUST be written and FAIL before implementation"
+- ✅ tasks-template.md - Already emphasizes testing discipline
 - ✅ .specify/templates/commands/plan.md - No update needed
 
 Follow-up TODOs: None
@@ -44,22 +42,44 @@ Follow-up TODOs: None
 - 测试必须快速执行（单次运行 < 1秒）
 - **禁止**：先实现功能后补测试
 
-**测试覆盖率要求**：
+**单元测试覆盖率要求**：
 - parser、indexer、search 模块：≥ 80%
 - 其他核心模块：≥ 60%
 - 新增功能必须同时添加测试
 
+**集成测试要求**（NON-NEGOTIABLE）：
+
+所有 CLI 命令必须有对应的集成测试，集成测试必须：
+
+- 使用 `assert_cmd` 框架进行 CLI 调用测试
+- 测试文件放在 `tests/` 目录，使用 `cli_test.rs`
+- 覆盖所有子命令（parse、search、favorite、unfavorite、favorites）
+- 测试场景包括：
+  - 正常流程（happy path）
+  - 错误输入处理
+  - 边界条件
+  - JSON 输出格式验证
+  - 环境变量配置
+
+**集成测试覆盖要求**：
+- 每个 CLI 子命令至少 3 个集成测试
+- 必须测试错误场景（文件不存在、无效参数等）
+- 必须测试 `--json` 输出格式
+- 必须测试 `--limit` 参数
+
 **TDD 合规检查清单**：
 - [ ] 功能实现前，测试已编写且失败
-- [ ] 测试覆盖主要分支（if/else、match）
-- [ ] 测试覆盖边界条件
-- [ ] 测试覆盖错误处理路径
+- [ ] 单元测试覆盖主要分支（if/else、match）
+- [ ] 单元测试覆盖边界条件
+- [ ] 单元测试覆盖错误处理路径
+- [ ] 集成测试覆盖所有 CLI 子命令
+- [ ] 集成测试覆盖错误场景
 - [ ] 所有测试通过后才能提交
 
 ### II. Incremental Implementation
 
 采用渐进式实现策略：
-- 第一阶段：核心原型（解析、搜索、收藏）+ 单元测试
+- 第一阶段：核心原型（解析、搜索、收藏）+ 单元测试 + 集成测试
 - 第二阶段：高级功能（过滤、导出、标签）
 - 第三阶段：外壳（CLI、UI）
 
@@ -102,6 +122,7 @@ CLI 是主要交互方式：
 - 索引方案：SQLite FTS5 或 tantivy
 - 配置格式：TOML
 - CLI 框架：clap
+- 测试框架：assert_cmd（集成测试）
 
 ### 代码质量
 
@@ -122,12 +143,14 @@ CLI 是主要交互方式：
 ### 功能实现检查清单
 
 - [ ] 符合 TDD 三步循环
-- [ ] 测试覆盖率达标
+- [ ] 单元测试覆盖率达标
+- [ ] 集成测试覆盖所有 CLI 子命令
+- [ ] 集成测试覆盖错误场景
 - [ ] `cargo check` 通过
 - [ ] `cargo clippy` 无警告
 - [ ] `cargo fmt` 无需格式化
 - [ ] 所有单元测试通过
-- [ ] 集成测试覆盖核心功能
+- [ ] 所有集成测试通过
 - [ ] 代码审查通过
 
 ### 质量门禁
@@ -136,7 +159,7 @@ CLI 是主要交互方式：
 - `cargo clippy` 无警告
 - `cargo fmt` 无需格式化
 - 所有单元测试通过
-- 集成测试覆盖核心功能
+- 所有集成测试通过
 
 ## Governance
 
@@ -156,7 +179,8 @@ CLI 是主要交互方式：
 - 每次代码审查需验证原则遵守
 - 复杂度必须有充分理由
 - TDD 流程必须严格执行
+- 集成测试必须覆盖所有 CLI 命令
 
 ---
 
-**Version**: 1.2.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
+**Version**: 1.3.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
