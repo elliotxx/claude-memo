@@ -11,7 +11,8 @@ Claude Code 会话记录管理工具。快速搜索、收藏、分享你的 AI �
 ## 安装
 
 ```bash
-cargo install claude-memo
+cargo build --release
+cargo install --path .
 ```
 
 ## 使用
@@ -61,6 +62,41 @@ claude-memo export --session <session-id> --screenshot
 |------|------|
 | `~/.claude/history.jsonl` | 官方会话记录（只读） |
 | `~/.claude-memo/` | 应用数据（索引、收藏、标签） |
+
+## 项目结构
+
+```
+claude-memo/
+├── Cargo.toml
+├── README.md
+├── src/
+│   ├── lib.rs           # 主入口，模块声明
+│   ├── parser.rs        # 解析 history.jsonl
+│   ├── indexer.rs       # 构建搜索索引
+│   ├── storage.rs       # ~/.claude-memo/ 数据管理
+│   ├── search.rs        # 全文搜索
+│   ├── exporter.rs      # HTML 导出
+│   └── cli.rs           # CLI 界面
+└── docs/
+    └── plans/
+        └── 2026-01-29-design.md
+```
+
+## 开发
+
+```bash
+# 检查代码
+cargo check
+
+# 运行测试
+cargo test
+
+# 格式化
+cargo fmt
+
+# 代码检查
+cargo clippy
+```
 
 ## 贡献
 
