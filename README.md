@@ -1,12 +1,12 @@
 # claude-memo
 
-Claude Code 会话记录管理工具。快速搜索、收藏、分享你的 AI 对话历史。
+Claude Code 会话记录管理工具。快速搜索、收藏你的 AI 对话历史。
 
 ## 功能
 
-- **快速搜索**: 全文检索 + 高级过滤（项目、时间、会话）
-- **收藏管理**: 将重要的会话标记收藏，支持标签分类
-- **分享导出**: 生成带样式的 HTML 页面，支持截图分享
+- **快速搜索**: SQLite FTS5 全文检索，支持 BM25  Relevance 排序
+- **收藏管理**: 将重要的会话标记收藏
+- **JSON 输出**: 支持 JSON 格式输出，便于脚本处理
 
 ## 安装
 
@@ -20,48 +20,58 @@ cargo install --path .
 ### 搜索会话
 
 ```bash
-# 全文搜索
+# 全文搜索（支持前缀匹配）
 claude-memo search "关键词"
 
-# 按项目搜索
-claude-memo search --project /path/to/project
+# 限制结果数量
+claude-memo search "关键词" --limit 10
 
-# 按时间过滤
-claude-memo search --last 7d
+# JSON 格式输出
+claude-memo search "关键词" --json
+```
 
-# 组合查询
-claude-memo search --project /path/to/project "关键词"
+### 解析会话（调试用）
+
+```bash
+# 解析并显示历史记录
+claude-memo parse
+
+# 限制显示数量
+claude-memo parse --limit 5
+
+# JSON 格式输出
+claude-memo parse --json
 ```
 
 ### 收藏会话
 
 ```bash
 # 收藏指定会话
-claude-memo favorite add <session-id>
+claude-memo favorite <session-id>
 
 # 取消收藏
-claude-memo favorite remove <session-id>
+claude-memo unfavorite <session-id>
 
-# 列出收藏
-claude-memo favorite list
+# 列出所有收藏
+claude-memo favorites
+
+# JSON 格式输出
+claude-memo favorites --json
 ```
 
-### 分享会话
+### 环境变量
 
-```bash
-# 导出为 HTML
-claude-memo export --session <session-id> --output session.html
-
-# 生成长图（需要截图工具）
-claude-memo export --session <session-id> --screenshot
-```
+| 变量 | 说明 |
+|------|------|
+| `CLAUDE_HISTORY` | 自定义历史文件路径 |
 
 ## 数据存储
 
 | 路径 | 说明 |
 |------|------|
 | `~/.claude/history.jsonl` | 官方会话记录（只读） |
-| `~/.claude-memo/` | 应用数据（索引、收藏、标签） |
+| `~/.claude-memo/index/sessions.db` | SQLite FTS5 搜索索引 |
+| `~/.claude-memo/favorites/sessions.toml` | 收藏列表 |
 
 ## 项目结构
 
@@ -69,17 +79,28 @@ claude-memo export --session <session-id> --screenshot
 claude-memo/
 ├── Cargo.toml
 ├── README.md
+├── rust-toolchain.toml
 ├── src/
 │   ├── lib.rs           # 主入口，模块声明
+│   ├── main.rs          # CLI 入口
+│   ├── error.rs         # 错误类型定义
 │   ├── parser.rs        # 解析 history.jsonl
-│   ├── indexer.rs       # 构建搜索索引
-│   ├── storage.rs       # ~/.claude-memo/ 数据管理
-│   ├── search.rs        # 全文搜索
-│   ├── exporter.rs      # HTML 导出
-│   └── cli.rs           # CLI 界面
-└── docs/
-    └── plans/
-        └── 2026-01-29-design.md
+│   ├── indexer.rs       # 构建 FTS5 搜索索引
+│   ├── storage.rs       # ~/.claude-memo/ 收藏管理
+│   ├── search.rs        # FTS5 全文搜索
+│   ├── exporter.rs      # HTML 导出（预留）
+│   └── cli.rs           # CLI 命令定义
+├── tests/
+│   └── cli_test.rs      # CLI 集成测试
+└── specs/
+    └── 001-core-prototype/
+        ├── spec.md           # 功能规格
+        ├── plan.md           # 实现计划
+        ├── tasks.md          # 任务清单
+        ├── data-model.md     # 数据模型
+        ├── research.md       # 技术调研
+        ├── contracts/        # 契约文档
+        └── quickstart.md     # 快速入门
 ```
 
 ## 开发
@@ -91,12 +112,24 @@ cargo check
 # 运行测试
 cargo test
 
+# 运行所有测试（包括集成测试）
+cargo test --all
+
 # 格式化
 cargo fmt
 
 # 代码检查
 cargo clippy
+
+# 覆盖率报告
+cargo install cargo-tarpaulin
+cargo tarpaulin --out Html
 ```
+
+## 测试结果
+
+- **31 个测试全部通过** (19 单元测试 + 12 集成测试)
+- Parser、Storage、Search 模块覆盖率高
 
 ## 贡献
 

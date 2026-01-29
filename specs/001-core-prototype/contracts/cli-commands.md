@@ -2,6 +2,7 @@
 
 **Date**: 2026-01-29
 **Feature**: 001-core-prototype
+**Status**: 已实现 ✓
 
 ## Command Structure
 
@@ -13,7 +14,7 @@ claude-memo <command> [options] [arguments]
 
 ### `search`
 
-全文搜索会话记录。
+全文搜索会话记录（使用 SQLite FTS5 索引）。
 
 ```bash
 claude-memo search [OPTIONS] <KEYWORD>
@@ -36,7 +37,7 @@ claude-memo search "agent" --json
 **Output (Text)**:
 
 ```
-<timestamp> <project> > <display>
+2026-01-29 10:30 /Users/yym/workspace/project > /model
 ```
 
 **Output (JSON)**:
@@ -44,10 +45,11 @@ claude-memo search "agent" --json
 ```json
 [
   {
-    "display": "/model ",
+    "display": "/model",
     "timestamp": 1766567616338,
-    "project": "/Users/yym",
-    "session_id": "abc123-def456"
+    "project": "/Users/yym/workspace/project",
+    "session_id": "abc123-def456-789",
+    "score": -0.0
   }
 ]
 ```
@@ -65,20 +67,26 @@ claude-memo parse [OPTIONS]
 | Flag | Description |
 |------|-------------|
 | `--json` | JSON 格式输出 |
-| `--limit <N>` | 限制显示数量 |
+| `--limit <N>`, `-n <N>` | 限制显示数量 |
 
-### `favorite add`
+**Example**:
+
+```bash
+claude-memo parse --limit 5 --json
+```
+
+### `favorite`
 
 收藏指定会话。
 
 ```bash
-claude-memo favorite add <SESSION_ID>
+claude-memo favorite <SESSION_ID>
 ```
 
 **Example**:
 
 ```bash
-claude-memo favorite add abc123-def456-xxx
+claude-memo favorite abc123-def456-xxx
 ```
 
 **Output**:
@@ -87,18 +95,18 @@ claude-memo favorite add abc123-def456-xxx
 ✅ Added abc123-def456-xxx to favorites
 ```
 
-### `favorite remove`
+### `unfavorite`
 
 取消收藏。
 
 ```bash
-claude-memo favorite remove <SESSION_ID>
+claude-memo unfavorite <SESSION_ID>
 ```
 
 **Example**:
 
 ```bash
-claude-memo favorite remove abc123-def456-xxx
+claude-memo unfavorite abc123-def456-xxx
 ```
 
 **Output**:
@@ -107,12 +115,12 @@ claude-memo favorite remove abc123-def456-xxx
 ✅ Removed abc123-def456-xxx from favorites
 ```
 
-### `favorite list`
+### `favorites`
 
 列出所有收藏。
 
 ```bash
-claude-memo favorite list [OPTIONS]
+claude-memo favorites [OPTIONS]
 ```
 
 **Options**:
@@ -121,11 +129,27 @@ claude-memo favorite list [OPTIONS]
 |------|-------------|
 | `--json` | JSON 格式输出 |
 
+**Example**:
+
+```bash
+claude-memo favorites --json
+```
+
 **Output (Text)**:
 
 ```
-⭐ <session_id> (<timestamp>)
-  Project: <project>
+⭐ abc123-def456-xxx (2026-01-29 10:30)
+```
+
+**Output (JSON)**:
+
+```json
+[
+  {
+    "session_id": "abc123-def456-xxx",
+    "favorited_at": 1700000000000
+  }
+]
 ```
 
 ### `help`
@@ -136,6 +160,19 @@ claude-memo favorite list [OPTIONS]
 claude-memo help
 claude-memo <command> --help
 ```
+
+### Global Options
+
+| Flag | Description |
+|------|-------------|
+| `-h`, `--help` | 显示帮助 |
+ `--version` || `-V`, 显示版本 |
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_HISTORY` | 自定义历史文件路径 |
 
 ## Error Codes
 
@@ -153,5 +190,7 @@ claude-memo <command> --help
 |----------|-----------|
 | 搜索有结果 | 0 |
 | 搜索无结果 | 0 (输出 "No results") |
+| 收藏成功 | 0 |
+| 取消收藏成功 | 0 |
 | 文件不存在 | 3 |
 | 解析错误 | 4 |
