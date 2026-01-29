@@ -167,8 +167,13 @@ fn handle_favorite_remove(session_id: &str) -> Result<(), Box<dyn std::error::Er
 
 /// 处理 favorites list 命令
 fn handle_favorite_list(json: bool) -> Result<(), Box<dyn std::error::Error>> {
+    use claude_memo::storage::FavoriteWithDetails;
+
     let storage = Storage::new()?;
-    let favorites = storage.list_favorites();
+    let history_path = get_history_path();
+
+    // Get favorites enriched with session details from history
+    let favorites: Vec<FavoriteWithDetails> = storage.list_favorites_with_details(&history_path)?;
 
     if favorites.is_empty() {
         println!("No favorites yet.");
@@ -181,7 +186,10 @@ fn handle_favorite_list(json: bool) -> Result<(), Box<dyn std::error::Error>> {
             .map(|f| {
                 serde_json::json!({
                     "session_id": f.session_id,
-                    "favorited_at": f.favorited_at
+                    "favorited_at": f.favorited_at,
+                    "display": f.display,
+                    "project": f.project,
+                    "timestamp": f.session_timestamp
                 })
             })
             .collect();
@@ -189,7 +197,6 @@ fn handle_favorite_list(json: bool) -> Result<(), Box<dyn std::error::Error>> {
     } else {
         for favorite in favorites {
             println!("{favorite}");
-            // TODO: Show project info from history
         }
     }
 

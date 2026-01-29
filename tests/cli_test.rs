@@ -650,3 +650,96 @@ fn test_favorites_persist_after_restart() {
         .success()
         .stdout(predicate::str::contains("persist-test-session"));
 }
+
+// === Enhanced Favorites Display Tests ===
+
+#[test]
+fn test_favorites_show_display_content() {
+    // Favorites display should show display/content field, not just session_id
+    // This provides useful context about what the session contains
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = temp_dir.path().join("history.jsonl");
+    let content = r#"{"display":"/implement user authentication feature","timestamp":1766567616338,"project":"/Users/yym/project-a","sessionId":"session-with-content"}
+"#;
+    fs::write(&history_file, content).unwrap();
+
+    // Add favorite
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("session-with-content")
+        .assert()
+        .success();
+
+    // List favorites should show display content
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorites")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "/implement user authentication feature",
+        )); // display content
+}
+
+#[test]
+fn test_favorites_show_project_info() {
+    // Favorites display should show project path for context
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = temp_dir.path().join("history.jsonl");
+    let content = r#"{"display":"/test command","timestamp":1766567616338,"project":"/Users/yym/my-awesome-project","sessionId":"project-session"}
+"#;
+    fs::write(&history_file, content).unwrap();
+
+    // Add favorite
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("project-session")
+        .assert()
+        .success();
+
+    // List favorites should show project info
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorites")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("my-awesome-project")); // project path
+}
+
+#[test]
+fn test_favorites_json_includes_session_details() {
+    // JSON output should include display, project, timestamp from history
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = temp_dir.path().join("history.jsonl");
+    let content = r#"{"display":"/search database query","timestamp":1766567616338,"project":"/Users/yym/backend","sessionId":"json-detail-session"}
+"#;
+    fs::write(&history_file, content).unwrap();
+
+    // Add favorite
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("json-detail-session")
+        .assert()
+        .success();
+
+    // JSON output should include full session details
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorites")
+        .arg("--json")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"/search database query\"")) // display
+        .stdout(predicate::str::contains("\"display\"")) // display field name
+        .stdout(predicate::str::contains("\"project\"")) // project field
+        .stdout(predicate::str::contains("\"timestamp\"")); // timestamp field
+}

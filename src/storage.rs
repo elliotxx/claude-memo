@@ -41,6 +41,62 @@ impl std::fmt::Display for FavoriteSession {
     }
 }
 
+/// Enriched favorite with session details from history
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FavoriteWithDetails {
+    /// The favorited session ID
+    pub session_id: String,
+    /// When the session was favorited (milliseconds)
+    pub favorited_at: i64,
+    /// Display content from the session's most recent record
+    pub display: String,
+    /// Project path from the session's most recent record
+    pub project: String,
+    /// Timestamp from the session's most recent record (milliseconds)
+    pub session_timestamp: i64,
+}
+
+impl FavoriteWithDetails {
+    /// Create a new FavoriteWithDetails
+    #[inline]
+    pub fn new(
+        session_id: String,
+        favorited_at: i64,
+        display: String,
+        project: String,
+        session_timestamp: i64,
+    ) -> Self {
+        Self {
+            session_id,
+            favorited_at,
+            display,
+            project,
+            session_timestamp,
+        }
+    }
+}
+
+impl std::fmt::Display for FavoriteWithDetails {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let datetime: DateTime<Utc> = Utc
+            .timestamp_millis_opt(self.session_timestamp)
+            .single()
+            .unwrap_or_else(|| {
+                Utc.timestamp_millis_opt(self.favorited_at)
+                    .single()
+                    .unwrap_or(Utc::now())
+            });
+        write!(
+            f,
+            "{} {} > {}  [{}]",
+            datetime.format("%Y-%m-%d %H:%M"),
+            self.project,
+            self.display,
+            self.session_id
+        )
+    }
+}
+
 /// Storage for favorites using TOML format
 #[derive(Debug, Clone)]
 pub struct Storage {
@@ -130,6 +186,71 @@ impl Storage {
     /// Get the data directory path
     pub fn data_dir(&self) -> &PathBuf {
         &self.data_dir
+    }
+
+    /// Get favorites enriched with session details from history file
+    /// This provides useful context (display, project, timestamp) for each favorite
+    pub fn list_favorites_with_details(
+        &self,
+        history_path: &PathBuf,
+    ) -> Result<Vec<FavoriteWithDetails>, crate::error::Error> {
+        let favorites = self.list_favorites();
+
+        if favorites.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Parse history file to get session details
+        let records = if history_path.exists() {
+            crate::parser::parse_history_file(history_path)?
+        } else {
+            Vec::new()
+        };
+
+        // Build a map from session_id to most recent record
+        let mut session_map: std::collections::HashMap<String, &crate::parser::SessionRecord> =
+            std::collections::HashMap::new();
+        for record in &records {
+            // Keep the most recent record for each session
+            if !session_map.contains_key(&record.session_id) {
+                session_map.insert(record.session_id.clone(), record);
+            } else {
+                // Replace if this record is newer
+                if record.timestamp > session_map[&record.session_id].timestamp {
+                    session_map.insert(record.session_id.clone(), record);
+                }
+            }
+        }
+
+        // Enrich favorites with session details
+        let mut enriched: Vec<FavoriteWithDetails> = favorites
+            .iter()
+            .map(|fav| {
+                if let Some(record) = session_map.get(&fav.session_id) {
+                    FavoriteWithDetails::new(
+                        fav.session_id.clone(),
+                        fav.favorited_at,
+                        record.display.clone(),
+                        record.project.clone(),
+                        record.timestamp,
+                    )
+                } else {
+                    // Session not found in history, still include basic info
+                    FavoriteWithDetails::new(
+                        fav.session_id.clone(),
+                        fav.favorited_at,
+                        String::from("(session not found in history)"),
+                        String::new(),
+                        fav.favorited_at,
+                    )
+                }
+            })
+            .collect();
+
+        // Sort by favorited_at descending (most recent first)
+        enriched.sort_by(|a, b| b.favorited_at.cmp(&a.favorited_at));
+
+        Ok(enriched)
     }
 }
 
