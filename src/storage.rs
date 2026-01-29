@@ -396,8 +396,11 @@ mod tests {
         storage.add_favorite("perf-test-session").unwrap();
         let add_time = start.elapsed();
 
-        assert!(add_time < std::time::Duration::from_secs(1),
-            "Add favorite took {} seconds, expected < 1 second", add_time.as_secs_f64());
+        assert!(
+            add_time < std::time::Duration::from_secs(1),
+            "Add favorite took {} seconds, expected < 1 second",
+            add_time.as_secs_f64()
+        );
 
         // Check is_favorited should be fast
         let start = std::time::Instant::now();
@@ -405,16 +408,22 @@ mod tests {
         let check_time = start.elapsed();
 
         assert!(is_fav);
-        assert!(check_time < std::time::Duration::from_millis(100),
-            "is_favorited took {} ms, expected < 100 ms", check_time.as_millis());
+        assert!(
+            check_time < std::time::Duration::from_millis(100),
+            "is_favorited took {} ms, expected < 100 ms",
+            check_time.as_millis()
+        );
 
         // Remove favorite should be fast
         let start = std::time::Instant::now();
         storage.remove_favorite("perf-test-session").unwrap();
         let remove_time = start.elapsed();
 
-        assert!(remove_time < std::time::Duration::from_secs(1),
-            "Remove favorite took {} seconds, expected < 1 second", remove_time.as_secs_f64());
+        assert!(
+            remove_time < std::time::Duration::from_secs(1),
+            "Remove favorite took {} seconds, expected < 1 second",
+            remove_time.as_secs_f64()
+        );
     }
 
     #[test]
@@ -437,8 +446,11 @@ mod tests {
         let total_time = start.elapsed();
 
         // All 100 additions should complete in < 1 second
-        assert!(total_time < std::time::Duration::from_secs(1),
-            "Adding 100 favorites took {} seconds, expected < 1 second", total_time.as_secs_f64());
+        assert!(
+            total_time < std::time::Duration::from_secs(1),
+            "Adding 100 favorites took {} seconds, expected < 1 second",
+            total_time.as_secs_f64()
+        );
 
         // Verify all are stored
         assert_eq!(storage.list_favorites().len(), 100);

@@ -109,7 +109,7 @@ impl Search {
             FROM sessions_fts
             JOIN sessions s ON s.rowid = sessions_fts.rowid
             WHERE sessions_fts MATCH ?1
-            ORDER BY score ASC
+            ORDER BY s.timestamp DESC, score ASC
             LIMIT ?2
         "#;
 
@@ -164,7 +164,7 @@ impl Search {
             FROM sessions_fts
             JOIN sessions s ON s.rowid = sessions_fts.rowid
             WHERE sessions_fts MATCH ?1 AND s.project LIKE ?2
-            ORDER BY score ASC
+            ORDER BY s.timestamp DESC, score ASC
             LIMIT ?3
         "#;
 
@@ -542,12 +542,14 @@ mod tests {
 
         // Generate 10k records
         let records: Vec<SessionRecord> = (0..10_000)
-            .map(|i| SessionRecord::new(
-                format!("/test command {}", i),
-                1766567616338 + i as i64,
-                "/Users/yym/project".to_string(),
-                format!("session-{:05}", i / 10), // 1000 sessions
-            ))
+            .map(|i| {
+                SessionRecord::new(
+                    format!("/test command {}", i),
+                    1766567616338 + i as i64,
+                    "/Users/yym/project".to_string(),
+                    format!("session-{:05}", i / 10), // 1000 sessions
+                )
+            })
             .collect();
 
         // Build index
@@ -569,8 +571,11 @@ mod tests {
 
         // These are soft assertions - we log performance rather than fail
         // The actual requirement is < 5 seconds for search
-        assert!(search_time < std::time::Duration::from_secs(5),
-            "Search took {} seconds, expected < 5 seconds", search_time.as_secs_f64());
+        assert!(
+            search_time < std::time::Duration::from_secs(5),
+            "Search took {} seconds, expected < 5 seconds",
+            search_time.as_secs_f64()
+        );
     }
 
     #[test]
@@ -581,12 +586,14 @@ mod tests {
 
         // Generate 100 records
         let records: Vec<SessionRecord> = (0..100)
-            .map(|i| SessionRecord::new(
-                format!("/search test query {}", i),
-                1766567616338 + i as i64,
-                "/Users/yym".to_string(),
-                format!("session-{}", i),
-            ))
+            .map(|i| {
+                SessionRecord::new(
+                    format!("/search test query {}", i),
+                    1766567616338 + i as i64,
+                    "/Users/yym".to_string(),
+                    format!("session-{}", i),
+                )
+            })
             .collect();
 
         indexer.build_index(&records).unwrap();
@@ -597,8 +604,12 @@ mod tests {
             let results = search.search("test", Some(20)).unwrap();
             let elapsed = start.elapsed();
 
-            assert!(elapsed < std::time::Duration::from_secs(1),
-                "Search {} took {} seconds, expected < 1 second", i, elapsed.as_secs_f64());
+            assert!(
+                elapsed < std::time::Duration::from_secs(1),
+                "Search {} took {} seconds, expected < 1 second",
+                i,
+                elapsed.as_secs_f64()
+            );
 
             assert!(!results.is_empty(), "Search {} should return results", i);
         }

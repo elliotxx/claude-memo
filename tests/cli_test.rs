@@ -563,3 +563,90 @@ fn test_search_output_includes_session_id() {
             "d55aaa1c-b149-4aa4-9809-7eab1dba8d4c",
         )); // session_id from test data
 }
+
+// === Missing Acceptance Scenario Tests ===
+
+#[test]
+fn test_parse_empty_file() {
+    // US1 场景3: 空文件返回空列表，不报错
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = temp_dir.path().join("empty_history.jsonl");
+    fs::write(&history_file, "").unwrap(); // Create empty file
+
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .arg("parse")
+        .assert()
+        .success()
+        .stdout(predicate::str::is_empty()); // Should output nothing
+}
+
+#[test]
+fn test_search_results_ordered_by_timestamp() {
+    // US2 场景1: 搜索结果按时间倒序排列（最新的在前）
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("ordered_history.jsonl");
+    // Create records with different timestamps
+    let content = r#"{"display":"/older command","timestamp":1766567616000,"project":"/Users/yym","sessionId":"session-001"}
+{"display":"/newer command","timestamp":1766567619000,"project":"/Users/yym","sessionId":"session-002"}
+{"display":"/middle command","timestamp":1766567617500,"project":"/Users/yym","sessionId":"session-003"}
+"#;
+    fs::write(&file_path, content).unwrap();
+
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &file_path)
+        .arg("search")
+        .arg("command")
+        .assert()
+        .success();
+
+    // Verify order: newer should appear before older
+    let output = cmd.output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let newer_pos = stdout.find("/newer command").unwrap();
+    let middle_pos = stdout.find("/middle command").unwrap();
+    let older_pos = stdout.find("/older command").unwrap();
+
+    assert!(
+        newer_pos < middle_pos && middle_pos < older_pos,
+        "Results should be ordered by timestamp descending (newest first). Got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn test_favorites_persist_after_restart() {
+    // US3 场景4: 应用重启后，收藏状态保持不变
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    // First: add a favorite
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("persist-test-session")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "Added persist-test-session to favorites",
+        ));
+
+    // Second: simulate restart by creating new Storage instance (same data dir)
+    // In a real scenario, this would be a new process
+    // Here we verify the file was written and can be read back
+    let favorites_file = temp_dir.path().join(".claude-memo/favorites/sessions.toml");
+    assert!(
+        favorites_file.exists(),
+        "Favorites file should exist after adding"
+    );
+
+    // Third: list favorites should show the persisted favorite
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorites")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("persist-test-session"));
+}
