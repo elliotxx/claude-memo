@@ -142,7 +142,7 @@ fn get_data_dir() -> Result<PathBuf, crate::error::Error> {
 /// Load favorites from TOML file
 fn load_favorites(path: &PathBuf) -> Result<HashMap<String, i64>, crate::error::Error> {
     let content = fs::read_to_string(path)?;
-    let data: toml::Value = content.parse().map_err(crate::error::Error::Toml)?;
+    let data: toml::Value = content.parse().map_err(crate::error::Error::TomlParse)?;
     let mut favorites = HashMap::new();
 
     if let Some(sessions) = data.get("sessions").and_then(|s| s.as_table()) {
@@ -339,8 +339,8 @@ mod tests {
         assert_eq!(favorites.len(), 3);
 
         // Verify descending order by checking each favorite is >= next
-        for i in 0..favorites.len()-1 {
-            assert!(favorites[i].favorited_at >= favorites[i+1].favorited_at);
+        for i in 0..favorites.len() - 1 {
+            assert!(favorites[i].favorited_at >= favorites[i + 1].favorited_at);
         }
     }
 
@@ -375,5 +375,72 @@ mod tests {
         let result = storage.add_favorite(&special_id);
         assert!(result.is_ok());
         assert!(storage.is_favorited(&special_id));
+    }
+
+    // === Performance Tests ===
+
+    #[test]
+    fn test_favorite_operation_performance() {
+        // SC-003: Favorite operation should complete in < 1 second
+        let temp_dir = TempDir::new().unwrap();
+        let favorites_file = temp_dir.path().join("sessions.toml");
+
+        let mut storage = Storage {
+            data_dir: temp_dir.path().to_path_buf(),
+            favorites_file,
+            favorites: HashMap::new(),
+        };
+
+        // Add favorite should complete in < 1 second
+        let start = std::time::Instant::now();
+        storage.add_favorite("perf-test-session").unwrap();
+        let add_time = start.elapsed();
+
+        assert!(add_time < std::time::Duration::from_secs(1),
+            "Add favorite took {} seconds, expected < 1 second", add_time.as_secs_f64());
+
+        // Check is_favorited should be fast
+        let start = std::time::Instant::now();
+        let is_fav = storage.is_favorited("perf-test-session");
+        let check_time = start.elapsed();
+
+        assert!(is_fav);
+        assert!(check_time < std::time::Duration::from_millis(100),
+            "is_favorited took {} ms, expected < 100 ms", check_time.as_millis());
+
+        // Remove favorite should be fast
+        let start = std::time::Instant::now();
+        storage.remove_favorite("perf-test-session").unwrap();
+        let remove_time = start.elapsed();
+
+        assert!(remove_time < std::time::Duration::from_secs(1),
+            "Remove favorite took {} seconds, expected < 1 second", remove_time.as_secs_f64());
+    }
+
+    #[test]
+    fn test_multiple_favorites_performance() {
+        // Test adding multiple favorites efficiently
+        let temp_dir = TempDir::new().unwrap();
+        let favorites_file = temp_dir.path().join("sessions.toml");
+
+        let mut storage = Storage {
+            data_dir: temp_dir.path().to_path_buf(),
+            favorites_file,
+            favorites: HashMap::new(),
+        };
+
+        // Add 100 favorites
+        let start = std::time::Instant::now();
+        for i in 0..100 {
+            storage.add_favorite(&format!("session-{}", i)).unwrap();
+        }
+        let total_time = start.elapsed();
+
+        // All 100 additions should complete in < 1 second
+        assert!(total_time < std::time::Duration::from_secs(1),
+            "Adding 100 favorites took {} seconds, expected < 1 second", total_time.as_secs_f64());
+
+        // Verify all are stored
+        assert_eq!(storage.list_favorites().len(), 100);
     }
 }

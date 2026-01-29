@@ -244,7 +244,9 @@ fn test_favorite_with_special_chars() {
         .arg("abc123-def456_789.012")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Added abc123-def456_789.012 to favorites"));
+        .stdout(predicate::str::contains(
+            "Added abc123-def456_789.012 to favorites",
+        ));
 }
 
 #[test]
@@ -309,7 +311,9 @@ fn test_unfavorite_then_add_again() {
         .arg("recyclable-session")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Added recyclable-session to favorites"));
+        .stdout(predicate::str::contains(
+            "Added recyclable-session to favorites",
+        ));
 }
 
 // === Edge Case Tests ===
@@ -555,5 +559,7 @@ fn test_search_output_includes_session_id() {
         .arg("model")
         .assert()
         .success()
-        .stdout(predicate::str::contains("d55aaa1c-b149-4aa4-9809-7eab1dba8d4c")); // session_id from test data
+        .stdout(predicate::str::contains(
+            "d55aaa1c-b149-4aa4-9809-7eab1dba8d4c",
+        )); // session_id from test data
 }

@@ -12,9 +12,13 @@ pub enum Error {
     #[error("JSON parse error: {0}")]
     JsonParse(#[from] serde_json::Error),
 
-    /// TOML parsing/serialization error
-    #[error("TOML error: {0}")]
-    Toml(#[from] toml::de::Error),
+    /// TOML parsing error
+    #[error("TOML parse error: {0}")]
+    TomlParse(#[from] toml::de::Error),
+
+    /// TOML serialization error
+    #[error("TOML serialization error: {0}")]
+    TomlSerialize(toml::ser::Error),
 
     /// SQLite error
     #[error("Database error: {0}")]

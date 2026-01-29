@@ -11,7 +11,9 @@ use std::path::PathBuf;
 fn sanitize_fts5_query(query: &str) -> String {
     // Characters that need to be escaped or removed for FTS5
     // FTS5 special characters: ", ', (, ), {, }, [, ], -, ., |, *, ?, ~
-    let problematic: &[char] = &['"', '\'', '(', ')', '{', '}', '[', ']', '-', '.', '|', '*', '?', '~'];
+    let problematic: &[char] = &[
+        '"', '\'', '(', ')', '{', '}', '[', ']', '-', '.', '|', '*', '?', '~',
+    ];
 
     let mut result = String::new();
     let mut has_valid_char = false;
@@ -232,7 +234,8 @@ impl Search {
 
         let conn = Connection::open(&self.db_path)?;
         // Handle case where table doesn't exist yet
-        let count: i64 = match conn.query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get(0)) {
+        let count: i64 = match conn.query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get(0))
+        {
             Ok(c) => c,
             Err(rusqlite::Error::QueryReturnedNoRows) => 0,
             Err(e) => return Err(e.into()),
@@ -527,5 +530,77 @@ mod tests {
         // Search with lowercase should match uppercase
         let results = search.search("model", Some(10)).unwrap();
         assert_eq!(results.len(), 1);
+    }
+
+    // === Performance Tests ===
+
+    #[test]
+    fn test_search_performance_10k_records() {
+        // SC-001: Search 10k records should complete in < 5 seconds
+        let temp_dir = TempDir::new().unwrap();
+        let (indexer, search) = create_test_indexer(&temp_dir);
+
+        // Generate 10k records
+        let records: Vec<SessionRecord> = (0..10_000)
+            .map(|i| SessionRecord::new(
+                format!("/test command {}", i),
+                1766567616338 + i as i64,
+                "/Users/yym/project".to_string(),
+                format!("session-{:05}", i / 10), // 1000 sessions
+            ))
+            .collect();
+
+        // Build index
+        let start = std::time::Instant::now();
+        indexer.build_index(&records).unwrap();
+        let index_time = start.elapsed();
+
+        // Search should complete in < 5 seconds
+        let start = std::time::Instant::now();
+        let results = search.search("command", Some(100)).unwrap();
+        let search_time = start.elapsed();
+
+        // Verify we got results
+        assert!(!results.is_empty());
+
+        // Performance assertions (informational only - may vary by hardware)
+        println!("Index build time for 10k records: {:?}", index_time);
+        println!("Search time for 10k records: {:?}", search_time);
+
+        // These are soft assertions - we log performance rather than fail
+        // The actual requirement is < 5 seconds for search
+        assert!(search_time < std::time::Duration::from_secs(5),
+            "Search took {} seconds, expected < 5 seconds", search_time.as_secs_f64());
+    }
+
+    #[test]
+    fn test_search_latency_100_records() {
+        // SC-002: Search latency with 100 records should be < 1 second
+        let temp_dir = TempDir::new().unwrap();
+        let (indexer, search) = create_test_indexer(&temp_dir);
+
+        // Generate 100 records
+        let records: Vec<SessionRecord> = (0..100)
+            .map(|i| SessionRecord::new(
+                format!("/search test query {}", i),
+                1766567616338 + i as i64,
+                "/Users/yym".to_string(),
+                format!("session-{}", i),
+            ))
+            .collect();
+
+        indexer.build_index(&records).unwrap();
+
+        // Multiple searches should each complete in < 1 second
+        for i in 0..10 {
+            let start = std::time::Instant::now();
+            let results = search.search("test", Some(20)).unwrap();
+            let elapsed = start.elapsed();
+
+            assert!(elapsed < std::time::Duration::from_secs(1),
+                "Search {} took {} seconds, expected < 1 second", i, elapsed.as_secs_f64());
+
+            assert!(!results.is_empty(), "Search {} should return results", i);
+        }
     }
 }

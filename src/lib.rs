@@ -2,6 +2,7 @@
 //!
 //! # Modules
 //!
+//! - `config`: User configuration management
 //! - `parser`: Parse history.jsonl files
 //! - `indexer`: Build search indexes
 //! - `storage`: Manage ~/.claude-memo/ data
@@ -11,6 +12,7 @@
 //! - `error`: Error types
 
 pub mod cli;
+pub mod config;
 pub mod error;
 pub mod exporter;
 pub mod indexer;

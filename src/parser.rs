@@ -113,8 +113,8 @@ pub fn parse_history_file(
         // Skip invalid lines instead of failing (graceful handling)
         match parse_line(&line) {
             Ok(Some(record)) => records.push(record),
-            Ok(None) => continue,  // Empty/whitespace line
-            Err(_) => continue,     // Invalid line, skip it
+            Ok(None) => continue, // Empty/whitespace line
+            Err(_) => continue,   // Invalid line, skip it
         }
     }
 

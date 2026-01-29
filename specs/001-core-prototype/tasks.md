@@ -1,8 +1,7 @@
 # Tasks: Core Prototype
 
 **Input**: Design documents from `/specs/001-core-prototype/`
-**Prerequisites**: plan.md (required), spec.md (required), research.md, data-model.md, contracts/
-
+**Prerequisites**: plan.md (required), spec.md (required), research.md, data-model.md
 **Tests**: Tests are included for this feature to meet the Constitution's 80%+ coverage requirement.
 
 **TDD Workflow (Constitution I)**: For ALL user stories, tests MUST be written and FAIL before implementation.
@@ -144,7 +143,7 @@
 
 ### Integration Tests
 
-- [ ] T037 [US4] Create CLI integration test in tests/integration/cli_test.rs
+- [ ] T037 [US4] Create CLI integration test in tests/cli_test.rs
 - [ ] T038 [US4] Run cargo test to verify all tests pass
 - [ ] T039 [US4] Run cargo tarpaulin to verify parser coverage >= 80%
 - [ ] T040 [US4] Run cargo tarpaulin to verify search coverage >= 80%
@@ -163,6 +162,20 @@
 - [ ] T046 Run cargo fmt in src/ and tests/ to ensure consistent formatting
 - [ ] T047 [P] Update README.md with CLI usage examples
 - [ ] T048 Create integration test for end-to-end search flow
+
+### FR-011: User Configuration
+
+- [ ] T049 [P] [US5] Create Config struct in src/config.rs (output_format, limit_default, etc.)
+- [ ] T050 [US5] Implement load_config function in src/config.rs (read ~/.claude-memo/config.toml)
+- [ ] T051 [US5] Implement save_config function in src/config.rs (write config.toml)
+- [ ] T052 [US5] Integrate config into CLI subcommands in src/cli.rs
+
+### Performance Tests
+
+- [ ] T053 [US6] Run search performance test with 10k records (<5 seconds)
+- [ ] T054 [US6] Run search latency test with 100 records (<1 second)
+- [ ] T055 [US6] Run favorite operation test (<1 second)
+- [ ] T056 [US6] Run cargo tarpaulin to verify storage coverage >= 60%
 
 ---
 
@@ -238,9 +251,9 @@ With multiple developers:
 
 ```bash
 # Launch all tests for User Story 1 together:
-Task: "Unit test for valid JSONL line parsing in tests/unit/parser_test.rs"
-Task: "Unit test for empty file handling in tests/unit/parser_test.rs"
-Task: "Unit test for malformed JSON handling in tests/unit/parser_test.rs"
+Task: "Unit test for valid JSONL line parsing in tests/cli_test.rs"
+Task: "Unit test for empty file handling in tests/cli_test.rs"
+Task: "Unit test for malformed JSON handling in tests/cli_test.rs"
 
 # Launch all implementation for User Story 1 together:
 Task: "Implement parse_history_file function in src/parser.rs"
@@ -254,15 +267,17 @@ Task: "Create parse CLI subcommand in src/cli.rs"
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 48 |
+| Total Tasks | 56 (+8 from v1.0) |
 | Setup Phase | 4 |
 | Foundational Phase | 5 |
 | User Story 1 | 7 (4 tests + 3 impl) |
 | User Story 2 | 7 (5 tests + 2 impl) |
 | User Story 3 | 7 (5 tests + 3 impl) |
 | User Story 4 | 5 |
+| User Story 5 (Config) | 4 |
+| User Story 6 (Performance) | 4 |
 | Polish Phase | 7 |
-| Parallelizable Tasks | 25 (marked with [P]) |
+| Parallelizable Tasks | 30 (marked with [P]) |
 
 ---
 
@@ -278,3 +293,4 @@ Task: "Create parse CLI subcommand in src/cli.rs"
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
 - **Constitution I (Test-First)**: All user story tests must be written FIRST
 - **Constitution IV (Immutable Source)**: Only read ~/.claude/, never write
+- **Test Directory**: Tests are in `tests/` (root), not `tests/unit/`. Unit tests are co-located with source modules (e.g., `src/parser.rs` contains `#[cfg(test)]` mod tests)
