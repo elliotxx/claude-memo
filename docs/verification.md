@@ -200,8 +200,7 @@ make test       # 所有测试
 # 最终验证
 make all
 
-# 如果全部通过，提交代码
-gitacp "feat: add new feature"
+# 必须使用 /gitacp CALUDE SKILL 提交代码,示例：/gitacp
 ```
 
 ## 验证失败排查
