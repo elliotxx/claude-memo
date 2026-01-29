@@ -8,10 +8,15 @@
 //! - `search`: Full-text search functionality
 //! - `exporter`: HTML export and screenshot
 //! - `cli`: Command-line interface
+//! - `error`: Error types
 
-pub mod parser;
-pub mod indexer;
-pub mod storage;
-pub mod search;
-pub mod exporter;
 pub mod cli;
+pub mod error;
+pub mod exporter;
+pub mod indexer;
+pub mod parser;
+pub mod search;
+pub mod storage;
+
+/// Result type alias using anyhow::Error
+pub type Result<T> = std::result::Result<T, anyhow::Error>;

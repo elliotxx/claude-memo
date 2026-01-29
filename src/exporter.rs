@@ -6,3 +6,9 @@ impl Exporter {
         Self
     }
 }
+
+impl Default for Exporter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
