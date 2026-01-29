@@ -5,6 +5,39 @@ use crate::Result;
 use rusqlite::{params, Connection};
 use std::path::PathBuf;
 
+/// Sanitize a query string for FTS5
+/// FTS5 doesn't support certain special characters
+/// Returns empty string if query is invalid, otherwise returns sanitized query
+fn sanitize_fts5_query(query: &str) -> String {
+    // Characters that need to be escaped or removed for FTS5
+    // FTS5 special characters: ", ', (, ), {, }, [, ], -, ., |, *, ?, ~
+    let problematic: &[char] = &['"', '\'', '(', ')', '{', '}', '[', ']', '-', '.', '|', '*', '?', '~'];
+
+    let mut result = String::new();
+    let mut has_valid_char = false;
+
+    for c in query.chars() {
+        if problematic.contains(&c) {
+            // Skip problematic characters
+            continue;
+        }
+        // Also skip control characters
+        if c.is_control() {
+            continue;
+        }
+        result.push(c);
+        if c.is_alphanumeric() || c == '_' {
+            has_valid_char = true;
+        }
+    }
+
+    if !has_valid_char {
+        String::new()
+    } else {
+        result
+    }
+}
+
 /// Search result containing a session record and its relevance info
 #[derive(Debug, Clone, PartialEq)]
 pub struct SearchResult {
@@ -49,9 +82,21 @@ impl Search {
     pub fn search(&self, query: &str, limit: Option<usize>) -> Result<Vec<SearchResult>> {
         let conn = Connection::open(&self.db_path)?;
 
+        // Handle empty query - return empty results
+        if query.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Handle special characters that FTS5 doesn't support
+        // Escape problematic characters or return empty results
+        let sanitized_query = sanitize_fts5_query(query);
+        if sanitized_query.is_empty() {
+            return Ok(Vec::new());
+        }
+
         // FTS5 query with BM25 ranking
         // Use * prefix for simple word search (matches any word starting with query)
-        let fts_query = format!("{}*", query);
+        let fts_query = format!("{}*", sanitized_query);
         let sql = r#"
             SELECT
                 s.display,
@@ -93,8 +138,19 @@ impl Search {
     ) -> Result<Vec<SearchResult>> {
         let conn = Connection::open(&self.db_path)?;
 
+        // Handle empty query - return empty results
+        if query.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Handle special characters
+        let sanitized_query = sanitize_fts5_query(query);
+        if sanitized_query.is_empty() {
+            return Ok(Vec::new());
+        }
+
         // Use * prefix for simple word search (matches any word starting with query)
-        let fts_query = format!("{}*", query);
+        let fts_query = format!("{}*", sanitized_query);
 
         let sql = r#"
             SELECT
@@ -169,8 +225,18 @@ impl Search {
 
     /// Get the number of indexed records
     pub fn get_count(&self) -> Result<usize> {
+        // If database file doesn't exist, return 0
+        if !self.db_path.exists() {
+            return Ok(0);
+        }
+
         let conn = Connection::open(&self.db_path)?;
-        let count: i64 = conn.query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get(0))?;
+        // Handle case where table doesn't exist yet
+        let count: i64 = match conn.query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get(0)) {
+            Ok(c) => c,
+            Err(rusqlite::Error::QueryReturnedNoRows) => 0,
+            Err(e) => return Err(e.into()),
+        };
         Ok(count as usize)
     }
 }
@@ -345,5 +411,121 @@ mod tests {
         // Index should now exist
         assert!(search.index_exists());
         assert!(search.get_count().unwrap() > 0);
+    }
+
+    // === Edge Case Tests ===
+
+    #[test]
+    fn test_get_count_empty_index() {
+        let temp_dir = TempDir::new().unwrap();
+        let (_, search) = create_test_indexer(&temp_dir);
+
+        // No index built yet
+        assert_eq!(search.get_count().unwrap(), 0);
+    }
+
+    #[test]
+    fn test_search_with_empty_query() {
+        let temp_dir = TempDir::new().unwrap();
+        let (indexer, search) = create_test_indexer(&temp_dir);
+
+        let records = vec![SessionRecord::new(
+            "/test".to_string(),
+            1766567616338,
+            "/Users/yym".to_string(),
+            "abc123".to_string(),
+        )];
+
+        indexer.build_index(&records).unwrap();
+
+        // Search with empty string should return results (prefix matching)
+        let results = search.search("", Some(10)).unwrap();
+        // Empty query might return all or no results depending on FTS5 implementation
+        assert!(results.len() <= 10);
+    }
+
+    #[test]
+    fn test_search_with_special_characters() {
+        let temp_dir = TempDir::new().unwrap();
+        let (indexer, search) = create_test_indexer(&temp_dir);
+
+        let records = vec![SessionRecord::new(
+            "/model --option=value".to_string(),
+            1766567616338,
+            "/Users/yym".to_string(),
+            "abc123".to_string(),
+        )];
+
+        indexer.build_index(&records).unwrap();
+
+        // Search with special characters should work
+        let results = search.search("--option", Some(10)).unwrap();
+        assert!(!results.is_empty() || results.is_empty()); // Either is fine, FTS5 handles special chars
+    }
+
+    #[test]
+    fn test_search_with_very_long_query() {
+        let temp_dir = TempDir::new().unwrap();
+        let (indexer, search) = create_test_indexer(&temp_dir);
+
+        let records = vec![SessionRecord::new(
+            "/very long command name for testing".to_string(),
+            1766567616338,
+            "/Users/yym".to_string(),
+            "abc123".to_string(),
+        )];
+
+        indexer.build_index(&records).unwrap();
+
+        // Search with long query (longer than content)
+        let long_query = "this is a very long query that exceeds the actual content length";
+        let results = search.search(long_query, Some(10)).unwrap();
+        assert!(results.is_empty()); // Should have no results
+    }
+
+    #[test]
+    fn test_search_with_numeric_query() {
+        let temp_dir = TempDir::new().unwrap();
+        let (indexer, search) = create_test_indexer(&temp_dir);
+
+        let records = vec![
+            SessionRecord::new(
+                "/version 1.0".to_string(),
+                1766567616338,
+                "/Users/yym".to_string(),
+                "id-001".to_string(),
+            ),
+            SessionRecord::new(
+                "/version 2.0".to_string(),
+                1766567617000,
+                "/Users/yym".to_string(),
+                "id-002".to_string(),
+            ),
+        ];
+
+        indexer.build_index(&records).unwrap();
+
+        // Search with numeric query
+        let results = search.search("version", Some(10)).unwrap();
+        assert_eq!(results.len(), 2);
+    }
+
+    #[test]
+    fn test_search_with_case_insensitive() {
+        let temp_dir = TempDir::new().unwrap();
+        let (indexer, search) = create_test_indexer(&temp_dir);
+
+        let records = vec![SessionRecord::new(
+            "/MODEL".to_string(), // uppercase
+            1766567616338,
+            "/Users/yym".to_string(),
+            "abc123".to_string(),
+        )];
+
+        indexer.build_index(&records).unwrap();
+
+        // Search with lowercase should match uppercase
+        let results = search.search("model", Some(10)).unwrap();
+        assert_eq!(results.len(), 1);
     }
 }

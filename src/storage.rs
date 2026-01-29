@@ -274,4 +274,106 @@ mod tests {
         let result = storage.remove_favorite("nonexistent");
         assert!(result.is_err());
     }
+
+    // === Edge Case Tests ===
+
+    #[test]
+    fn test_duplicate_session_id() {
+        // Adding the same session_id twice should succeed
+        let temp_dir = TempDir::new().unwrap();
+        let favorites_file = temp_dir.path().join("sessions.toml");
+
+        let mut storage = Storage {
+            data_dir: temp_dir.path().to_path_buf(),
+            favorites_file: favorites_file.clone(),
+            favorites: HashMap::new(),
+        };
+
+        // Add same session twice
+        storage.add_favorite("same-session").unwrap();
+        assert!(storage.is_favorited("same-session"));
+
+        // Second add should still succeed
+        let result = storage.add_favorite("same-session");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_is_favorited_returns_false_for_nonexistent() {
+        let temp_dir = TempDir::new().unwrap();
+        let favorites_file = temp_dir.path().join("sessions.toml");
+
+        let storage = Storage {
+            data_dir: temp_dir.path().to_path_buf(),
+            favorites_file,
+            favorites: HashMap::new(),
+        };
+
+        assert!(!storage.is_favorited("nonexistent-session"));
+    }
+
+    #[test]
+    fn test_favorites_sorted_by_timestamp_descending() {
+        let temp_dir = TempDir::new().unwrap();
+        let favorites_file = temp_dir.path().join("sessions.toml");
+
+        let mut storage = Storage {
+            data_dir: temp_dir.path().to_path_buf(),
+            favorites_file: favorites_file.clone(),
+            favorites: HashMap::new(),
+        };
+
+        // Use different timestamps directly by modifying the HashMap
+        // This avoids timing issues with add_favorite
+        use std::thread;
+        use std::time::Duration;
+
+        // Add with delays to ensure different timestamps
+        storage.add_favorite("oldest").unwrap();
+        thread::sleep(Duration::from_millis(10));
+        storage.add_favorite("middle").unwrap();
+        thread::sleep(Duration::from_millis(10));
+        storage.add_favorite("newest").unwrap();
+
+        let favorites = storage.list_favorites();
+        assert_eq!(favorites.len(), 3);
+
+        // Verify descending order by checking each favorite is >= next
+        for i in 0..favorites.len()-1 {
+            assert!(favorites[i].favorited_at >= favorites[i+1].favorited_at);
+        }
+    }
+
+    #[test]
+    fn test_list_favorites_empty() {
+        let temp_dir = TempDir::new().unwrap();
+        let favorites_file = temp_dir.path().join("sessions.toml");
+
+        let storage = Storage {
+            data_dir: temp_dir.path().to_path_buf(),
+            favorites_file,
+            favorites: HashMap::new(),
+        };
+
+        let favorites = storage.list_favorites();
+        assert!(favorites.is_empty());
+    }
+
+    #[test]
+    fn test_add_favorite_with_special_chars_in_id() {
+        // Session IDs with special characters should be allowed
+        let temp_dir = TempDir::new().unwrap();
+        let favorites_file = temp_dir.path().join("sessions.toml");
+
+        let mut storage = Storage {
+            data_dir: temp_dir.path().to_path_buf(),
+            favorites_file,
+            favorites: HashMap::new(),
+        };
+
+        let special_id = "abc123-def456_789.012";
+        let result = storage.add_favorite(&special_id);
+        assert!(result.is_ok());
+        assert!(storage.is_favorited(&special_id));
+    }
 }
