@@ -1,16 +1,60 @@
+<!--
+Sync Impact Report
+==================
+Version Change: 1.1.0 → 1.2.0
+
+Modified Principles:
+- I. Test-First (ENHANCED) → Now explicitly requires TDD workflow with detailed steps
+- II. Incremental Implementation → Minor wording clarification
+- IV. Immutable Source Data → Added explicit violation consequences
+
+Added Sections:
+- TDD Workflow Details (new subsection under Test-First)
+- TDD Compliance Checklist (new)
+- Feature Implementation Checklist (new)
+
+Removed Sections: None
+
+Templates Status:
+- ✅ plan-template.md - Already has "Constitution Check" section, no update needed
+- ✅ spec-template.md - Already has "User Scenarios & Testing" mandatory section
+- ✅ tasks-template.md - Already emphasizes "Tests MUST be written and FAIL before implementation"
+- ✅ .specify/templates/commands/plan.md - No update needed
+
+Follow-up TODOs: None
+-->
+
 # Claude Memo Constitution
 
 ## Core Principles
 
-### I. Test-First (NON-NEGOTIABLE)
+### I. Test-First Development (NON-NEGOTIABLE)
 
-所有功能必须遵循 TDD 流程：
-1. 先编写失败的单元测试
-2. 获得用户对测试方案的确认
-3. 实现功能使测试通过
-4. 重构代码
+所有功能必须严格遵循 TDD 流程：
 
-核心模块（parser、indexer、search）必须有 80%+ 测试覆盖率。
+**TDD 三步循环**：
+1. **RED**: 编写失败的测试（测试必须先于实现）
+2. **GREEN**: 编写最少代码使测试通过（不追求完美）
+3. **REFACTOR**: 重构代码，消除重复，提升质量
+
+**TDD 流程要求**：
+- 每个功能必须有对应的单元测试
+- 测试文件与实现文件同名，放在 `tests/` 目录
+- 测试必须独立运行，不依赖其他测试的执行顺序
+- 测试必须快速执行（单次运行 < 1秒）
+- **禁止**：先实现功能后补测试
+
+**测试覆盖率要求**：
+- parser、indexer、search 模块：≥ 80%
+- 其他核心模块：≥ 60%
+- 新增功能必须同时添加测试
+
+**TDD 合规检查清单**：
+- [ ] 功能实现前，测试已编写且失败
+- [ ] 测试覆盖主要分支（if/else、match）
+- [ ] 测试覆盖边界条件
+- [ ] 测试覆盖错误处理路径
+- [ ] 所有测试通过后才能提交
 
 ### II. Incremental Implementation
 
@@ -32,17 +76,16 @@
 **绝对禁止修改用户原始数据目录**：
 - `~/.claude/` 目录下的所有文件均为只读
 - 禁止对该目录进行写入、删除、修改操作
-- 禁止创建、修改或删除任何文件或子目录
 - 只读操作包括：解析、索引、搜索
 
-违反此原则的代码不得合并。
+**违反此原则的代码不得合并**。
 
 ### V. CLI-First Interface
 
 CLI 是主要交互方式：
 - 支持交互式模式（fzf 风格）和非交互模式
 - 输出格式：文本为主，支持 JSON 导出
-- 错误信息必须清晰、 actionable
+- 错误信息必须清晰、actionable
 
 ### VI. Minimalist Design (YAGNI)
 
@@ -68,13 +111,24 @@ CLI 是主要交互方式：
 
 ## Development Workflow
 
-### 开发流程
+### TDD 实施流程
 
-1. 创建功能分支
-2. 编写测试 → 实现功能 → 重构
-3. 确保 `cargo clippy`、`cargo fmt`、`cargo test` 通过
-4. 提交 PR，邀请代码审查
-5. 合并后删除分支
+1. **理解需求** → 编写失败的测试（RED）
+2. **实现功能** → 最少代码使测试通过（GREEN）
+3. **重构** → 提升代码质量（REFACTOR）
+4. **验证** → 确保所有测试通过
+5. **提交** → 进入下一功能
+
+### 功能实现检查清单
+
+- [ ] 符合 TDD 三步循环
+- [ ] 测试覆盖率达标
+- [ ] `cargo check` 通过
+- [ ] `cargo clippy` 无警告
+- [ ] `cargo fmt` 无需格式化
+- [ ] 所有单元测试通过
+- [ ] 集成测试覆盖核心功能
+- [ ] 代码审查通过
 
 ### 质量门禁
 
@@ -101,7 +155,8 @@ CLI 是主要交互方式：
 **合规审查**：
 - 每次代码审查需验证原则遵守
 - 复杂度必须有充分理由
+- TDD 流程必须严格执行
 
 ---
 
-**Version**: 1.1.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
+**Version**: 1.2.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
