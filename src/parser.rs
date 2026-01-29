@@ -56,10 +56,11 @@ impl std::fmt::Display for SessionRecord {
             .unwrap_or(Utc::now());
         write!(
             f,
-            "{} {} > {}",
+            "{} {} > {}  [{}]",
             datetime.format("%Y-%m-%d %H:%M"),
             self.project,
-            self.display
+            self.display,
+            self.session_id
         )
     }
 }
@@ -236,5 +237,20 @@ mod tests {
         assert!(result.is_ok());
         let record = result.unwrap().unwrap();
         assert!(record.project.contains("workspace/my-project"));
+    }
+
+    #[test]
+    fn test_session_record_display_includes_session_id() {
+        // Verify Display format includes session_id for favorite workflow
+        let record = SessionRecord::new(
+            "/model".to_string(),
+            1766567616338,
+            "/Users/yym".to_string(),
+            "abc123-def456-789".to_string(),
+        );
+        let display = record.to_string();
+        assert!(display.contains("abc123-def456-789")); // session_id should be visible
+        assert!(display.contains("[")); // session_id wrapped in brackets
+        assert!(display.contains("]"));
     }
 }

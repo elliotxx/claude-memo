@@ -1,25 +1,25 @@
 <!--
 Sync Impact Report
 ==================
-Version Change: 1.2.0 → 1.3.0
+Version Change: 1.3.0 → 1.4.0
 
 Modified Principles:
-- I. Test-First Development (ENHANCED) → Added integration test requirements
+- I. Test-First Development (ENHANCED) → Added User Stories & Acceptance Criteria
 
 Added Sections:
-- Integration Test Requirements (new subsection)
-- CLI Integration Tests requirement
-- End-to-end workflow tests
+- User Story Format Template
+- Acceptance Criteria Writing Principles
+- Extended TDD Workflow
 
 Removed Sections: None
 
 Templates Status:
-- ✅ plan-template.md - Already has "Constitution Check" section
-- ✅ spec-template.md - Already has "User Scenarios & Testing" mandatory section
+- ✅ plan-template.md - Constitution Check section exists
+- ✅ spec-template.md - Has "User Scenarios & Testing" section
 - ✅ tasks-template.md - Already emphasizes testing discipline
-- ✅ .specify/templates/commands/plan.md - No update needed
 
-Follow-up TODOs: None
+Follow-up TODOs:
+- [ ] Update spec-template.md to require user stories in spec
 -->
 
 # Claude Memo Constitution
@@ -140,6 +140,46 @@ CLI 是主要交互方式：
 4. **验证** → 确保所有测试通过
 5. **提交** → 进入下一功能
 
+### 用户故事与验收标准（新增）
+
+**每个功能必须编写用户故事**（格式）：
+
+```markdown
+**用户故事**：
+作为 [角色]，我希望 [功能/行为]，以便 [价值/目的]。
+
+**验收标准**（必须全部勾选才能交付）：
+- [ ] 验收标准 1（必须是可测试的）
+- [ ] 验收标准 2
+- [ ] ...
+```
+
+**验收标准编写原则**：
+1. 每个验收标准必须是**可测试的**（能写出一个失败的测试）
+2. 验收标准描述**用户能观察到行为**，而非内部实现
+3. 包含**可发现性验证**：用户能否从输出中找到所需信息
+4. 包含**工作流验证**：用户能否完成完整使用场景
+
+**示例**：
+
+```markdown
+**用户故事**：
+作为用户，我希望从 search 输出中复制 session_id，
+以便使用 `claude-memo favorite <session-id>` 收藏命令。
+
+**验收标准**：
+- [ ] search 输出显示每条记录的 session_id
+- [ ] session_id 格式易于复制（如用 [] 包裹）
+- [ ] 集成测试验证 session_id 出现在输出中
+```
+
+**TDD 流程扩展**：
+1. 编写用户故事和验收标准
+2. 将每个验收标准转化为一个失败的测试（RED）
+3. 实现功能使测试通过（GREEN）
+4. 重构并验证所有验收标准满足（REFACTOR + 验证）
+5. 交付前验证完整工作流
+
 ### 功能实现检查清单
 
 - [ ] 符合 TDD 三步循环
@@ -183,4 +223,4 @@ CLI 是主要交互方式：
 
 ---
 
-**Version**: 1.3.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
+**Version**: 1.4.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29

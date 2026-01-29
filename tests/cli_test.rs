@@ -207,6 +207,111 @@ fn test_unfavorite() {
         ));
 }
 
+#[test]
+fn test_favorite_already_exists() {
+    // Adding the same session twice should be idempotent
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("duplicate-session")
+        .assert()
+        .success();
+
+    // Adding again should still succeed (idempotent)
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("duplicate-session")
+        .assert()
+        .success();
+}
+
+#[test]
+fn test_favorite_with_special_chars() {
+    // Session IDs with special characters should work
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("abc123-def456_789.012")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Added abc123-def456_789.012 to favorites"));
+}
+
+#[test]
+fn test_favorite_multiple_sessions() {
+    // Add multiple different sessions and verify all are stored
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    let sessions = ["session-001", "session-002", "session-003"];
+
+    for session in &sessions {
+        let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+        cmd.env("CLAUDE_HISTORY", &history_file)
+            .env("HOME", temp_dir.path())
+            .arg("favorite")
+            .arg(session)
+            .assert()
+            .success();
+    }
+
+    // Verify all are listed
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorites")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("session-001"))
+        .stdout(predicate::str::contains("session-002"))
+        .stdout(predicate::str::contains("session-003"));
+}
+
+#[test]
+fn test_unfavorite_then_add_again() {
+    // Remove a session then add it back
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    // Add
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("recyclable-session")
+        .assert()
+        .success();
+
+    // Remove
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("unfavorite")
+        .arg("recyclable-session")
+        .assert()
+        .success();
+
+    // Add again
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorite")
+        .arg("recyclable-session")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Added recyclable-session to favorites"));
+}
+
 // === Edge Case Tests ===
 
 #[test]
@@ -334,4 +439,121 @@ fn test_subcommand_help() {
         .stdout(predicate::str::contains("KEYWORD"))
         .stdout(predicate::str::contains("--json"))
         .stdout(predicate::str::contains("--limit"));
+}
+
+// === Missing Boundary Case Tests ===
+
+#[test]
+fn test_favorites_empty_list() {
+    // Test favorites when list is empty
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    // No favorites added - list should be empty
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("favorites")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("No favorites")); // Should indicate empty
+}
+
+#[test]
+fn test_parse_subcommand_help() {
+    // Test parse --help subcommand
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.arg("parse")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--json"))
+        .stdout(predicate::str::contains("--limit"))
+        .stdout(predicate::str::contains("-n"));
+}
+
+#[test]
+fn test_favorite_subcommand_help() {
+    // Test favorite --help subcommand
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.arg("favorite")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("SESSION_ID")) // Uppercase
+        .stdout(predicate::str::contains("Usage"));
+}
+
+#[test]
+fn test_unfavorite_subcommand_help() {
+    // Test unfavorite --help subcommand
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.arg("unfavorite")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("SESSION_ID")) // Uppercase
+        .stdout(predicate::str::contains("Usage"));
+}
+
+#[test]
+fn test_favorites_subcommand_help() {
+    // Test favorites --help subcommand
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.arg("favorites")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--json"))
+        .stdout(predicate::str::contains("Usage"));
+}
+
+#[test]
+fn test_unfavorite_from_empty_list() {
+    // Test unfavorite when list is empty
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    // Try to unfavorite from empty list
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .env("HOME", temp_dir.path())
+        .arg("unfavorite")
+        .arg("nonexistent-session")
+        .assert()
+        .failure()
+        .code(1)
+        .stderr(predicate::str::contains("Session not found"));
+}
+
+#[test]
+fn test_search_with_very_long_keyword() {
+    // Test search with keyword > 100 characters
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    let long_keyword = "this_is_a_very_long_search_keyword_that_exceeds_normal_length_requirements_and_should_not_crash_the_application_at_all";
+
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .arg("search")
+        .arg(&long_keyword)
+        .assert()
+        .success(); // Should not crash
+}
+
+#[test]
+fn test_search_output_includes_session_id() {
+    // Verify search output includes session_id for favorite workflow
+    // Users need to see session_id to copy it for `claude-memo favorite <session-id>`
+    let temp_dir = TempDir::new().unwrap();
+    let history_file = create_test_history_file(&temp_dir);
+
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_HISTORY", &history_file)
+        .arg("search")
+        .arg("model")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("d55aaa1c-b149-4aa4-9809-7eab1dba8d4c")); // session_id from test data
 }

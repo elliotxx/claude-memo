@@ -36,8 +36,19 @@
 
 1. **Given** 存在多条会话记录，**When** 用户搜索 "keyword"，**Then** 返回所有包含 "keyword" 的记录。
 2. **Given** 搜索无结果，**When** 执行搜索命令，**Then** 返回空列表并提示无匹配结果。
-3. **Given** 搜索结果包含多条记录，**When** 显示结果，**Then** 每条记录显示时间、项目路径和内容摘要。
+3. **Given** 搜索结果包含多条记录，**When** 显示结果，**Then** 每条记录显示时间、项目路径、内容摘要和 session_id。
 4. **Given** 搜索关键词为空，**When** 执行搜索命令，**Then** 返回所有记录。
+5. **Given** 搜索结果包含 session_id，**When** 用户查看输出，**Then** 用户能够从输出中复制 session_id（便于收藏使用）。
+
+**可发现性验证**：
+- [ ] search 输出显示每条记录的 session_id
+- [ ] session_id 格式易于复制（如用 `[]` 包裹或明确标注）
+- [ ] 集成测试验证 session_id 出现在输出中
+
+**工作流验证**：
+- [ ] 用户能够从 search 输出复制 session_id
+- [ ] 用户能够使用复制的 session_id 执行 `favorite` 命令
+- [ ] 完整搜索→复制→收藏工作流可正常运行
 
 ---
 
@@ -51,10 +62,21 @@
 
 **Acceptance Scenarios**:
 
-1. **Given** 存在会话记录，**When** 用户执行收藏命令，**Then** 该会话被标记为收藏。
+1. **Given** 存在会话记录，**When** 用户执行收藏命令（提供 session_id），**Then** 该会话被标记为收藏。
 2. **Given** 存在已收藏的会话，**When** 用户执行取消收藏命令，**Then** 该会话取消收藏状态。
 3. **Given** 用户执行收藏列表命令，**When** 系统返回，**Then** 显示所有已收藏的会话。
 4. **Given** 应用重启后，**When** 查询收藏状态，**Then** 收藏状态保持不变。
+5. **Given** 用户从 search 输出复制了 session_id，**When** 用户执行 `favorite <session_id>`，**Then** 该会话成功被收藏。
+
+**可发现性验证**：
+- [ ] favorite 命令正确接受 session_id 作为参数
+- [ ] 收藏成功/失败的反馈信息清晰明确
+- [ ] favorites 列表显示收藏时间和 session_id
+
+**工作流验证**：
+- [ ] 用户能够从 search 输出复制 session_id
+- [ ] 用户能够将复制的 session_id 作为参数传递给 favorite 命令
+- [ ] 收藏后可在 favorites 列表中看到该会话
 
 ---
 
@@ -118,5 +140,5 @@
 
 - Q: CLI 命令接口定义 → A: 使用子命令结构，如 `claude-memo search "keyword"`、`claude-memo favorite add <id>`
 - Q: 搜索实现方式 → A: 使用 SQLite FTS5 内置全文索引，平衡性能和复杂度
-- Q: 搜索结果输出格式 → A: 纯文本格式：时间 + 项目 + 内容摘要，每行一条
+- Q: 搜索结果输出格式 → A: 纯文本格式：`时间 项目 > 内容 [session_id]`，每行一条，session_id 用方括号包裹便于复制
 - Q: 收藏数据存储格式 → A: TOML 文件：~/.claude-memo/favorites/sessions.toml，手动可编辑
