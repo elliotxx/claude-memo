@@ -25,10 +25,10 @@ cargo test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECH
 Rust 2024 Edition: Follow standard conventions
 
 ## Recent Changes
+- 001-core-prototype: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 001-core-prototype: Added Rust 2024 Edition (1.75+) + clap 4.4 (CLI), rusqlite 0.31 + FTS5 (搜索索引), toml 0.8 (配置)
 - 001-core-prototype: Added Rust 2021 Edition (1.75+)
 
-- 001-core-prototype: Added Rust 2024 Edition + clap 4.4 (CLI), rusqlite 0.31 + FTS5 (搜索索引), toml 0.8 (配置)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

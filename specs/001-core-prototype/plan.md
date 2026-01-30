@@ -1,69 +1,37 @@
-# Implementation Plan: Core Prototype
+# Implementation Plan: [FEATURE]
 
-**Branch**: `001-core-prototype` | **Date**: 2026-01-30 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/001-core-prototype/spec.md`
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-实现 claude-memo 核心原型：解析 history.jsonl、基础全文搜索、收藏功能和单元测试验证。
-
-**技术方案**（来自 Clarifications）：
-- CLI 命令结构：`claude-memo search`、`claude-memo favorite add <id>`
-- 搜索实现：SQLite FTS5 内置全文索引
-- 收藏存储：TOML 文件 `~/.claude-memo/favorites/sessions.toml`
-- 用户配置：Local TOML config file (`~/.claude-memo/config.toml`)
+[Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
 
-**Language/Version**: Rust 2024 Edition (1.75+)
-**Primary Dependencies**: clap 4.4 (CLI), rusqlite 0.31 + FTS5 (搜索索引), toml 0.8 (配置)
-**Storage**: SQLite (FTS5 索引) + TOML (收藏配置)
-**Testing**: cargo test + assert_cmd (集成测试)
-**Target Platform**: macOS/Linux (CLI 工具)
-**Project Type**: 单项目 CLI 工具
-**Performance Goals**: 10,000 条记录搜索 < 5秒 (SC-001)
-**Constraints**: `~/.claude/` 只读，数据隔离到 `~/.claude-memo/`
-**Scale/Scope**: 10万+ 记录的搜索性能优化
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [single/web/mobile - determines source structure]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### TDD Compliance Gate
-
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| TDD 三步循环 (RED-GREEN-REFACTOR) | Checked | 将遵循 TDD 流程 |
-| 每个功能有对应单元测试 | Checked | parser、search、storage 模块 |
-| 测试文件在 `tests/` 目录 | Checked | 使用 `tests/` 目录结构 |
-| 单元测试覆盖率 >= 80% (parser/search) | Checked | 根据 SC-005, SC-006 |
-| 单元测试覆盖率 >= 60% (storage) | Checked | 根据 SC-007 |
-| 集成测试使用 assert_cmd | Checked | CLI 测试框架 |
-| 集成测试覆盖所有子命令 | Checked | parse、search、favorite 等 |
-| 先实现后补测试 | **VIOLATION** | 禁止行为 |
-
-### Data Isolation Gate
-
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| `~/.claude/` 只读 | Checked |-history.jsonl 解析 |
-| 应用数据在 `~/.claude-memo/` | Checked | 收藏配置隔离 |
-| 禁止修改原始数据 | Checked | 宪法 IV |
-
-### CLI-First Gate
-
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| 子命令结构 | Checked | search、favorite add/unfavorite |
-| 输出格式：文本为主 | Checked | `时间 项目 > 内容 [session_id]` |
-| 支持 JSON 导出 | Checked | 验收标准要求 |
-| 错误信息清晰 | Checked | stderr + exit code |
-
-**GATE STATUS**: PASSED ✓
-
-用户故事和验收标准已完整定义，符合宪法 v1.4.0 要求。
+[Gates determined based on constitution file]
 
 ## Project Structure
 
@@ -80,41 +48,51 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── cli/                  # CLI 命令和子命令
-│   ├── mod.rs
-│   ├── commands/         # 子命令实现
-│   │   ├── mod.rs
-│   │   ├── parse.rs      # parse 子命令
-│   │   ├── search.rs     # search 子命令
-│   │   ├── favorite.rs   # favorite/favorites 子命令
-│   │   └── config.rs     # config 子命令
-│   └── output.rs         # 输出格式化
-├── parser/               # 解析模块
-│   ├── mod.rs
-│   └── history.rs        # history.jsonl 解析
-├── storage/              # 存储模块
-│   ├── mod.rs
-│   ├── favorites.rs      # 收藏管理
-│   └── config.rs         # 配置管理
-└── models/               # 数据模型
-    ├── mod.rs
-    └── session.rs        # SessionRecord, FavoriteSession
+├── models/
+├── services/
+├── cli/
+└── lib/
 
 tests/
-├── unit/                 # 单元测试
-│   ├── parser_test.rs
-│   ├── search_test.rs
-│   └── storage_test.rs
-└── integration/          # 集成测试 (assert_cmd)
-    └── cli_test.rs
+├── contract/
+├── integration/
+└── unit/
 
-Cargo.toml
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
+
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: 单项目 CLI 工具，使用 modules 组织代码，tests/ 分离单元测试和集成测试。
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Complexity Tracking
 
@@ -122,31 +100,5 @@ Cargo.toml
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| N/A | 无复杂违规 | - |
-
-## Constitution Check (Post-Phase 1 Re-evaluation)
-
-*Re-evaluated after Phase 1 design completion*
-
-| Check | Status | Notes |
-|-------|--------|-------|
-| 设计符合 TDD 流程 | PASSED | 模块划分支持测试驱动 |
-| 数据隔离合规 | PASSED | `~/.claude/` 只读，`~/.claude-memo/` 存储应用数据 |
-| CLI 设计合规 | PASSED | 子命令结构、输出格式符合规范 |
-| 技术选型合规 | PASSED | Rust 2024 + clap + rusqlite + toml 符合约束 |
-
-**GATE STATUS**: PASSED ✓
-
-设计阶段完成后，所有宪法检查项仍然通过。
-
-## Phase 2: Action Items
-
-**Next Step**: Run `/speckit.tasks` to generate `tasks.md` with actionable, dependency-ordered tasks.
-
-**Phase 2 Outputs**:
-- `tasks.md` - Implementation tasks (generated by `/speckit.tasks` command)
-
-**To generate tasks**:
-```bash
-/speckit.tasks
-```
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
