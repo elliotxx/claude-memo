@@ -26,16 +26,16 @@ pub enum Commands {
     Search(SearchArgs),
 
     /// 添加收藏
-    #[command(name = "favorite")]
-    Favorite(AddFavoriteArgs),
+    #[command(name = "mark")]
+    Mark(AddMarkArgs),
 
     /// 取消收藏
-    #[command(name = "unfavorite")]
-    Unfavorite(RemoveFavoriteArgs),
+    #[command(name = "unmark")]
+    Unmark(RemoveMarkArgs),
 
     /// 列出所有收藏
-    #[command(name = "favorites")]
-    Favorites(ListFavoriteArgs),
+    #[command(name = "marks")]
+    Marks(ListMarksArgs),
 }
 
 /// Parse 命令参数
@@ -67,21 +67,21 @@ pub struct SearchArgs {
 
 /// 添加收藏参数
 #[derive(Parser, Debug)]
-pub struct AddFavoriteArgs {
+pub struct AddMarkArgs {
     /// 会话 ID
     pub session_id: String,
 }
 
 /// 取消收藏参数
 #[derive(Parser, Debug)]
-pub struct RemoveFavoriteArgs {
+pub struct RemoveMarkArgs {
     /// 会话 ID
     pub session_id: String,
 }
 
 /// 列出收藏参数
 #[derive(Parser, Debug)]
-pub struct ListFavoriteArgs {
+pub struct ListMarksArgs {
     /// JSON 格式输出
     #[arg(long = "json")]
     pub json: bool,

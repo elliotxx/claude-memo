@@ -145,13 +145,11 @@ fn test_favorite_add() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("test-session-123")
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "Added test-session-123 to favorites",
-        ));
+        .stdout(predicate::str::contains("Added test-session-123 to marks"));
 }
 
 #[test]
@@ -165,7 +163,7 @@ fn test_favorites_list() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("test-session-456")
         .assert()
         .success();
@@ -174,7 +172,7 @@ fn test_favorites_list() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .assert()
         .success()
         .stdout(predicate::str::contains("test-session-456"));
@@ -189,7 +187,7 @@ fn test_unfavorite() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("to-remove-session")
         .assert()
         .success();
@@ -198,12 +196,12 @@ fn test_unfavorite() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("unfavorite")
+        .arg("unmark")
         .arg("to-remove-session")
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "Removed to-remove-session from favorites",
+            "Removed to-remove-session from marks",
         ));
 }
 
@@ -216,7 +214,7 @@ fn test_favorite_already_exists() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("duplicate-session")
         .assert()
         .success();
@@ -225,7 +223,7 @@ fn test_favorite_already_exists() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("duplicate-session")
         .assert()
         .success();
@@ -240,12 +238,12 @@ fn test_favorite_with_special_chars() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("abc123-def456_789.012")
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "Added abc123-def456_789.012 to favorites",
+            "Added abc123-def456_789.012 to marks",
         ));
 }
 
@@ -261,7 +259,7 @@ fn test_favorite_multiple_sessions() {
         let mut cmd = Command::cargo_bin("claude-memo").unwrap();
         cmd.env("CLAUDE_HISTORY", &history_file)
             .env("HOME", temp_dir.path())
-            .arg("favorite")
+            .arg("mark")
             .arg(session)
             .assert()
             .success();
@@ -271,7 +269,7 @@ fn test_favorite_multiple_sessions() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .assert()
         .success()
         .stdout(predicate::str::contains("session-001"))
@@ -289,7 +287,7 @@ fn test_unfavorite_then_add_again() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("recyclable-session")
         .assert()
         .success();
@@ -298,7 +296,7 @@ fn test_unfavorite_then_add_again() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("unfavorite")
+        .arg("unmark")
         .arg("recyclable-session")
         .assert()
         .success();
@@ -307,12 +305,12 @@ fn test_unfavorite_then_add_again() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("recyclable-session")
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "Added recyclable-session to favorites",
+            "Added recyclable-session to marks",
         ));
 }
 
@@ -326,7 +324,7 @@ fn test_favorite_empty_session_id() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("")
         .assert()
         .failure()
@@ -342,7 +340,7 @@ fn test_unfavorite_nonexistent_session() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("unfavorite")
+        .arg("unmark")
         .arg("nonexistent-session-id")
         .assert()
         .failure()
@@ -416,7 +414,7 @@ fn test_favorites_json_format() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("json-test-session")
         .assert()
         .success();
@@ -425,7 +423,7 @@ fn test_favorites_json_format() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .arg("--json")
         .assert()
         .success()
@@ -457,10 +455,10 @@ fn test_favorites_empty_list() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .assert()
         .success()
-        .stdout(predicate::str::contains("No favorites")); // Should indicate empty
+        .stdout(predicate::str::contains("No marks")); // Should indicate empty
 }
 
 #[test]
@@ -480,7 +478,7 @@ fn test_parse_subcommand_help() {
 fn test_favorite_subcommand_help() {
     // Test favorite --help subcommand
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
-    cmd.arg("favorite")
+    cmd.arg("mark")
         .arg("--help")
         .assert()
         .success()
@@ -492,7 +490,7 @@ fn test_favorite_subcommand_help() {
 fn test_unfavorite_subcommand_help() {
     // Test unfavorite --help subcommand
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
-    cmd.arg("unfavorite")
+    cmd.arg("unmark")
         .arg("--help")
         .assert()
         .success()
@@ -504,7 +502,7 @@ fn test_unfavorite_subcommand_help() {
 fn test_favorites_subcommand_help() {
     // Test favorites --help subcommand
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
-    cmd.arg("favorites")
+    cmd.arg("marks")
         .arg("--help")
         .assert()
         .success()
@@ -522,7 +520,7 @@ fn test_unfavorite_from_empty_list() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("unfavorite")
+        .arg("unmark")
         .arg("nonexistent-session")
         .assert()
         .failure()
@@ -549,7 +547,7 @@ fn test_search_with_very_long_keyword() {
 #[test]
 fn test_search_output_includes_session_id() {
     // Verify search output includes session_id for favorite workflow
-    // Users need to see session_id to copy it for `claude-memo favorite <session-id>`
+    // Users need to see session_id to copy it for `claude-memo mark <session-id>`
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
@@ -624,12 +622,12 @@ fn test_favorites_persist_after_restart() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("persist-test-session")
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "Added persist-test-session to favorites",
+            "Added persist-test-session to marks",
         ));
 
     // Second: simulate restart by creating new Storage instance (same data dir)
@@ -645,7 +643,7 @@ fn test_favorites_persist_after_restart() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .assert()
         .success()
         .stdout(predicate::str::contains("persist-test-session"));
@@ -667,7 +665,7 @@ fn test_favorites_show_display_content() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("session-with-content")
         .assert()
         .success();
@@ -676,7 +674,7 @@ fn test_favorites_show_display_content() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .assert()
         .success()
         .stdout(predicate::str::contains(
@@ -697,7 +695,7 @@ fn test_favorites_show_project_info() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("project-session")
         .assert()
         .success();
@@ -706,7 +704,7 @@ fn test_favorites_show_project_info() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .assert()
         .success()
         .stdout(predicate::str::contains("my-awesome-project")); // project path
@@ -725,7 +723,7 @@ fn test_favorites_json_includes_session_details() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorite")
+        .arg("mark")
         .arg("json-detail-session")
         .assert()
         .success();
@@ -734,7 +732,7 @@ fn test_favorites_json_includes_session_details() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .env("HOME", temp_dir.path())
-        .arg("favorites")
+        .arg("marks")
         .arg("--json")
         .assert()
         .success()

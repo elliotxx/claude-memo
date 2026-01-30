@@ -47,16 +47,16 @@ claude-memo parse --json
 
 ```bash
 # 收藏指定会话
-claude-memo favorite <session-id>
+claude-memo mark <session-id>
 
 # 取消收藏
-claude-memo unfavorite <session-id>
+claude-memo unmark <session-id>
 
 # 列出所有收藏
-claude-memo favorites
+claude-memo marks
 
 # JSON 格式输出
-claude-memo favorites --json
+claude-memo marks --json
 ```
 
 ### 环境变量

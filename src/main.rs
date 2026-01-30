@@ -5,9 +5,9 @@
 //! ```
 //! claude-memo parse          # 解析并显示历史记录
 //! claude-memo search "关键词" # 全文搜索
-//! claude-memo favorite <session-id>  # 添加收藏
-//! claude-memo unfavorite <session-id> # 取消收藏
-//! claude-memo favorites         # 列出所有收藏
+//! claude-memo mark <session-id>  # 添加收藏
+//! claude-memo unmark <session-id> # 取消收藏
+//! claude-memo marks         # 列出所有收藏
 //! ```
 
 use clap::Parser;
@@ -33,20 +33,20 @@ fn main() {
                 process::exit(1);
             }
         }
-        Commands::Favorite(args) => {
-            if let Err(e) = handle_favorite_add(&args.session_id) {
+        Commands::Mark(args) => {
+            if let Err(e) = handle_mark_add(&args.session_id) {
                 eprintln!("Error: {e}");
                 process::exit(1);
             }
         }
-        Commands::Unfavorite(args) => {
-            if let Err(e) = handle_favorite_remove(&args.session_id) {
+        Commands::Unmark(args) => {
+            if let Err(e) = handle_mark_remove(&args.session_id) {
                 eprintln!("Error: {e}");
                 process::exit(1);
             }
         }
-        Commands::Favorites(args) => {
-            if let Err(e) = handle_favorite_list(args.json) {
+        Commands::Marks(args) => {
+            if let Err(e) = handle_mark_list(args.json) {
                 eprintln!("Error: {e}");
                 process::exit(1);
             }
@@ -149,24 +149,24 @@ fn handle_search(
     Ok(())
 }
 
-/// 处理 favorite add 命令
-fn handle_favorite_add(session_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+/// 处理 mark add 命令
+fn handle_mark_add(session_id: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut storage = Storage::new()?;
     storage.add_favorite(session_id)?;
-    println!("✅ Added {session_id} to favorites");
+    println!("✅ Added {session_id} to marks");
     Ok(())
 }
 
-/// 处理 favorite remove 命令
-fn handle_favorite_remove(session_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+/// 处理 mark remove 命令
+fn handle_mark_remove(session_id: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut storage = Storage::new()?;
     storage.remove_favorite(session_id)?;
-    println!("✅ Removed {session_id} from favorites");
+    println!("✅ Removed {session_id} from marks");
     Ok(())
 }
 
-/// 处理 favorites list 命令
-fn handle_favorite_list(json: bool) -> Result<(), Box<dyn std::error::Error>> {
+/// 处理 marks list 命令
+fn handle_mark_list(json: bool) -> Result<(), Box<dyn std::error::Error>> {
     use claude_memo::storage::FavoriteWithDetails;
 
     let storage = Storage::new()?;
@@ -176,7 +176,7 @@ fn handle_favorite_list(json: bool) -> Result<(), Box<dyn std::error::Error>> {
     let favorites: Vec<FavoriteWithDetails> = storage.list_favorites_with_details(&history_path)?;
 
     if favorites.is_empty() {
-        println!("No favorites yet.");
+        println!("No marks yet.");
         return Ok(());
     }
 

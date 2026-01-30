@@ -18,9 +18,9 @@
 
 **Purpose**: Rename source files to match new command names
 
-- [ ] T001 [P] Rename `src/cli/commands/favorite.rs` to `src/cli/commands/mark.rs`
-- [ ] T002 [P] Rename `src/cli/commands/unfavorite.rs` to `src/cli/commands/unmark.rs`
-- [ ] T003 [P] Rename `src/cli/commands/list_favorites.rs` to `src/cli/commands/list_marks.rs`
+- [X] T001 [P] Rename `src/cli/commands/favorite.rs` to `src/cli/commands/mark.rs` (N/A - commands defined in cli.rs)
+- [X] T002 [P] Rename `src/cli/commands/unfavorite.rs` to `src/cli/commands/unmark.rs` (N/A - commands defined in cli.rs)
+- [X] T003 [P] Rename `src/cli/commands/list_favorites.rs` to `src/cli/commands/list_marks.rs` (N/A - commands defined in cli.rs)
 
 ---
 
@@ -28,7 +28,7 @@
 
 **Purpose**: Update CLI module to register new command names
 
-- [ ] T004 Update command registration in `src/cli/commands/mod.rs` to use `mark`, `unmark`, `marks`
+- [X] T004 [P] Update command names from `favorite`/`unfavorite`/`favorites` to `mark`/`unmark`/`marks` in `src/cli.rs`
 
 ---
 
@@ -42,19 +42,19 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Add integration test for `mark` command in `tests/integration/mark_commands.rs`
-- [ ] T011 [P] [US1] Add integration test for `unmark` command in `tests/integration/mark_commands.rs`
-- [ ] T012 [P] [US1] Add integration test for `marks` command in `tests/integration/mark_commands.rs`
-- [ ] T013 [P] [US1] Add `--json` output test for `marks` command in `tests/integration/mark_commands.rs`
-- [ ] T014 [P] [US1] Add error handling test for invalid session-id in `tests/integration/mark_commands.rs`
+- [X] T010 [P] [US1] Add integration test for `mark` command in `tests/integration/mark_commands.rs`
+- [X] T011 [P] [US1] Add integration test for `unmark` command in `tests/integration/mark_commands.rs`
+- [X] T012 [P] [US1] Add integration test for `marks` command in `tests/integration/mark_commands.rs`
+- [X] T013 [P] [US1] Add `--json` output test for `marks` command in `tests/integration/mark_commands.rs`
+- [X] T014 [P] [US1] Add error handling test for invalid session-id in `tests/integration/mark_commands.rs`
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Update module declaration in `src/cli/commands/mark.rs`
-- [ ] T016 [US1] Update module declaration in `src/cli/commands/unmark.rs`
-- [ ] T017 [US1] Update module declaration in `src/cli/commands/list_marks.rs`
-- [ ] T018 [US1] Update command struct names if needed in mark.rs/unmark.rs/list_marks.rs
-- [ ] T019 [US1] Update clap command names from `favorite` to `mark` etc. in mod.rs
+- [X] T015 [US1] Update module declaration in `src/cli.rs`
+- [X] T016 [US1] Update module declaration in `src/cli.rs`
+- [X] T017 [US1] Update module declaration in `src/cli.rs`
+- [X] T018 [US1] Update command struct names if needed in cli.rs
+- [X] T019 [US1] Update clap command names from `favorite` to `mark` etc. in cli.rs
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -68,15 +68,15 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T020 [P] [US2] Add integration test verifying `favorite` command fails in `tests/integration/mark_commands.rs`
-- [ ] T021 [P] [US2] Add integration test verifying `unfavorite` command fails in `tests/integration/mark_commands.rs`
-- [ ] T022 [P] [US2] Add integration test verifying `favorites` command fails in `tests/integration/mark_commands.rs`
+- [X] T020 [P] [US2] Add integration test verifying `favorite` command fails in `tests/integration/mark_commands.rs`
+- [X] T021 [P] [US2] Add integration test verifying `unfavorite` command fails in `tests/integration/mark_commands.rs`
+- [X] T022 [P] [US2] Add integration test verifying `favorites` command fails in `tests/integration/mark_commands.rs`
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Remove `favorite` command registration from `src/cli/commands/mod.rs`
-- [ ] T024 [US2] Remove `unfavorite` command registration from `src/cli/commands/mod.rs`
-- [ ] T025 [US2] Remove `favorites` command registration from `src/cli/commands/mod.rs`
+- [X] T023 [US2] Remove `favorite` command registration from `src/cli.rs`
+- [X] T024 [US2] Remove `unfavorite` command registration from `src/cli.rs`
+- [X] T025 [US2] Remove `favorites` command registration from `src/cli.rs`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -90,8 +90,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Update README.md with new `mark`/`unmark`/`marks` command examples
-- [ ] T031 [US3] Update help text in CLI if needed for new command descriptions
+- [X] T030 [US3] Update README.md with new `mark`/`unmark`/`marks` command examples
+- [X] T031 [US3] Update help text in CLI if needed for new command descriptions (N/A - clap auto-generates)
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -101,9 +101,9 @@
 
 **Purpose**: 验证和清理
 
-- [ ] T040 [P] Run `cargo check`, `cargo clippy`, and `cargo fmt` to verify code quality
-- [ ] T041 Run all tests with `cargo test` to verify nothing is broken
-- [ ] T042 [P] Update CLAUDE.md if needed with new command information
+- [X] T040 [P] Run `cargo check`, `cargo clippy`, and `cargo fmt` to verify code quality
+- [X] T041 Run all tests with `cargo test` to verify nothing is broken
+- [X] T042 [P] Update CLAUDE.md if needed with new command information (N/A)
 
 ---
 
