@@ -1,96 +1,120 @@
 # Implementation Plan: Core Prototype
 
-**Branch**: `001-core-prototype` | **Date**: 2026-01-29 | **Spec**: [spec.md](spec.md)
+**Branch**: `001-core-prototype` | **Date**: 2026-01-30 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `/specs/001-core-prototype/spec.md`
+
+**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-实现 claude-memo 核心原型：一个 CLI 工具，用于解析 Claude Code 的 `history.jsonl` 文件，支持全文搜索和会话收藏功能。
+实现 claude-memo 核心原型：解析 history.jsonl、基础全文搜索、收藏功能和单元测试验证。
 
-**技术方案**：
-- CLI 框架：clap 4.4（derive 宏，子命令结构）
-- 全文搜索：SQLite FTS5 内置索引（BM25 排序）
-- 收藏存储：TOML 文件（`~/.claude-memo/favorites/sessions.toml`）
-- 测试框架：cargo test + assert_cmd（集成测试）
-- 错误处理：thiserror + anyhow
+**技术方案**（来自 Clarifications）：
+- CLI 命令结构：`claude-memo search`、`claude-memo favorite add <id>`
+- 搜索实现：SQLite FTS5 内置全文索引
+- 收藏存储：TOML 文件 `~/.claude-memo/favorites/sessions.toml`
+- 用户配置：Local TOML config file (`~/.claude-memo/config.toml`)
 
 ## Technical Context
 
-**Language/Version**: Rust 2021 Edition (1.75+)
-**Primary Dependencies**:
-- `clap 4.4`: CLI 解析和子命令
-- `rusqlite`: SQLite FTS5 全文索引
-- `toml`: 收藏数据序列化
-- `chrono`: 时间处理
-- `thiserror`: 错误类型定义
-- `anyhow`: 错误上下文
-**Storage**:
-- `~/.claude/history.jsonl`: 只读输入源
-- `~/.claude-memo/index/sessions.db`: SQLite FTS5 索引
-- `~/.claude-memo/favorites/sessions.toml`: 收藏列表
-- `~/.claude-memo/config.toml`: 用户配置（待实现）
-**Testing**: cargo test, assert_cmd (CLI integration), tarpaulin (coverage)
-**Target Platform**: macOS/Linux (CLI tool)
-**Project Type**: Single Rust binary
-**Performance Goals**: 10,000 条记录搜索 < 5 秒
-**Constraints**: 只读访问 ~/.claude/ 目录
-**Scale/Scope**: 单用户本地工具，支持 10 万+ 记录
+**Language/Version**: Rust 2024 Edition (1.75+)
+**Primary Dependencies**: clap 4.4 (CLI), rusqlite 0.31 + FTS5 (搜索索引), toml 0.8 (配置)
+**Storage**: SQLite (FTS5 索引) + TOML (收藏配置)
+**Testing**: cargo test + assert_cmd (集成测试)
+**Target Platform**: macOS/Linux (CLI 工具)
+**Project Type**: 单项目 CLI 工具
+**Performance Goals**: 10,000 条记录搜索 < 5秒 (SC-001)
+**Constraints**: `~/.claude/` 只读，数据隔离到 `~/.claude-memo/`
+**Scale/Scope**: 10万+ 记录的搜索性能优化
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| TDD 三步循环 | ✅ | RED→GREEN→REFACTOR 流程已定义 |
-| 单元测试覆盖率 ≥ 80% | ✅ | parser、search 模块需达标 |
-| 集成测试覆盖所有子命令 | ✅ | parse、search、favorite、unfavorite、favorites |
-| 数据隔离 | ✅ | ~/.claude/ 只读，数据存储在 ~/.claude-memo/ |
-| 测试先于实现 | ⚠️ | **技术债务**: 核心功能已先于测试实现，需补充验收测试 |
-| cargo check/clippy/fmt | ✅ | 质量门禁已定义 |
+### TDD Compliance Gate
 
-**Technical Debt Note**: 由于项目采用"先实现后补测试"的路径，Constitution I (Test-First) 原则已被绕过。补救措施：
-- 所有核心功能已有测试覆盖（68 tests passing）
-- 新功能开发必须严格遵循 TDD 流程
-- 集成测试已补充 session_id 显示验证
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| TDD 三步循环 (RED-GREEN-REFACTOR) | Checked | 将遵循 TDD 流程 |
+| 每个功能有对应单元测试 | Checked | parser、search、storage 模块 |
+| 测试文件在 `tests/` 目录 | Checked | 使用 `tests/` 目录结构 |
+| 单元测试覆盖率 >= 80% (parser/search) | Checked | 根据 SC-005, SC-006 |
+| 单元测试覆盖率 >= 60% (storage) | Checked | 根据 SC-007 |
+| 集成测试使用 assert_cmd | Checked | CLI 测试框架 |
+| 集成测试覆盖所有子命令 | Checked | parse、search、favorite 等 |
+| 先实现后补测试 | **VIOLATION** | 禁止行为 |
 
-**Post-Design Re-check**:
-- 单元测试: 37 passed ✅
-- 集成测试: 31 passed ✅
-- 总计: 68 tests passing ✅
+### Data Isolation Gate
+
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| `~/.claude/` 只读 | Checked |-history.jsonl 解析 |
+| 应用数据在 `~/.claude-memo/` | Checked | 收藏配置隔离 |
+| 禁止修改原始数据 | Checked | 宪法 IV |
+
+### CLI-First Gate
+
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| 子命令结构 | Checked | search、favorite add/unfavorite |
+| 输出格式：文本为主 | Checked | `时间 项目 > 内容 [session_id]` |
+| 支持 JSON 导出 | Checked | 验收标准要求 |
+| 错误信息清晰 | Checked | stderr + exit code |
+
+**GATE STATUS**: PASSED ✓
+
+用户故事和验收标准已完整定义，符合宪法 v1.4.0 要求。
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/001-core-prototype/
+specs/[###-feature]/
 ├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output - 技术选型已确定
-├── data-model.md        # Phase 1 output - 实体模型已定义
-├── quickstart.md        # Phase 1 output - 开发环境设置
-├── contracts/           # Phase 1 output (not needed - CLI tool)
-├── spec.md              # 功能规格
-└── tasks.md             # Phase 2 output (/speckit.tasks command)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
 ### Source Code (repository root)
 
 ```text
 src/
-├── lib.rs               # 库入口，导出公共 API
-├── main.rs              # CLI 入口点
-├── error.rs             # 错误类型定义 (thiserror)
-├── parser.rs            # JSONL 解析模块
-├── indexer.rs           # FTS5 索引构建
-├── search.rs            # 搜索逻辑（FTS5 + BM25）
-└── storage.rs           # 收藏存储（TOML）
+├── cli/                  # CLI 命令和子命令
+│   ├── mod.rs
+│   ├── commands/         # 子命令实现
+│   │   ├── mod.rs
+│   │   ├── parse.rs      # parse 子命令
+│   │   ├── search.rs     # search 子命令
+│   │   ├── favorite.rs   # favorite/favorites 子命令
+│   │   └── config.rs     # config 子命令
+│   └── output.rs         # 输出格式化
+├── parser/               # 解析模块
+│   ├── mod.rs
+│   └── history.rs        # history.jsonl 解析
+├── storage/              # 存储模块
+│   ├── mod.rs
+│   ├── favorites.rs      # 收藏管理
+│   └── config.rs         # 配置管理
+└── models/               # 数据模型
+    ├── mod.rs
+    └── session.rs        # SessionRecord, FavoriteSession
 
 tests/
-├── cli_test.rs          # CLI 集成测试 (assert_cmd)
+├── unit/                 # 单元测试
+│   ├── parser_test.rs
+│   ├── search_test.rs
+│   └── storage_test.rs
+└── integration/          # 集成测试 (assert_cmd)
+    └── cli_test.rs
+
+Cargo.toml
 ```
 
-**Structure Decision**: 单项目结构，模块按功能划分（解析、索引、搜索、存储）
+**Structure Decision**: 单项目 CLI 工具，使用 modules 组织代码，tests/ 分离单元测试和集成测试。
 
 ## Complexity Tracking
 
@@ -98,76 +122,31 @@ tests/
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| FTS5 全文索引 | 10,000+ 记录需要 <5s 搜索 | 简单遍历 O(n) 无法满足性能 |
-| SQLite 而非内存 | 索引持久化，避免重复构建 | 首次加载可接受，未来支持增量 |
+| N/A | 无复杂违规 | - |
 
-## Phase 0: Research Summary
+## Constitution Check (Post-Phase 1 Re-evaluation)
 
-**Completed** ✅
+*Re-evaluated after Phase 1 design completion*
 
-| Topic | Decision | Status |
-|-------|----------|--------|
-| CLI Framework | clap 4.4 | Implemented |
-| Search Index | SQLite FTS5 | Implemented |
-| Favorite Storage | TOML | Implemented |
-| Testing | cargo test + assert_cmd | Partial |
-| Error Handling | thiserror + anyhow | Implemented |
+| Check | Status | Notes |
+|-------|--------|-------|
+| 设计符合 TDD 流程 | PASSED | 模块划分支持测试驱动 |
+| 数据隔离合规 | PASSED | `~/.claude/` 只读，`~/.claude-memo/` 存储应用数据 |
+| CLI 设计合规 | PASSED | 子命令结构、输出格式符合规范 |
+| 技术选型合规 | PASSED | Rust 2024 + clap + rusqlite + toml 符合约束 |
 
-## Phase 1: Design Summary
+**GATE STATUS**: PASSED ✓
 
-**Completed** ✅
+设计阶段完成后，所有宪法检查项仍然通过。
 
-**Entities**:
-- `SessionRecord`: display, timestamp, project, session_id
-- `FavoriteSession`: session_id, favorited_at
+## Phase 2: Action Items
 
-**Data Flow**:
+**Next Step**: Run `/speckit.tasks` to generate `tasks.md` with actionable, dependency-ordered tasks.
+
+**Phase 2 Outputs**:
+- `tasks.md` - Implementation tasks (generated by `/speckit.tasks` command)
+
+**To generate tasks**:
+```bash
+/speckit.tasks
 ```
-history.jsonl → parser → SessionRecord → indexer → FTS5
-                                          ↓
-                                     search → results
-                                          ↓
-storage (TOML) ← favorite ← session_id
-```
-
-**CLI Commands**:
-- `parse [--json] [--limit N]`: 解析并显示记录
-- `search KEYWORD [--json] [--limit N]`: 全文搜索
-- `favorite SESSION_ID`: 收藏会话（add 操作）
-- `unfavorite SESSION_ID`: 取消收藏（remove 操作）
-- `favorites [--json]`: 列出收藏
-
-## Next Steps
-
-1. **补充缺失测试**（已修复）：
-   - `test_search_output_includes_session_id` - 已添加 ✅
-   - 测试路径修正：`tests/integration/cli_test.rs` → `tests/cli_test.rs` ✅
-   - 验证所有验收标准可测试
-
-2. **新增功能任务**（FR-011 配置存储）：
-   - T049 [US5] Create Config struct in src/config.rs
-   - T050 [US5] Implement load_config function
-   - T051 [US5] Implement save_config function
-   - T052 [US5] Integrate config into CLI
-
-3. **性能测试任务**（SC-001/SC-002）：
-   - T053 [US6] 搜索性能测试（10k 记录 <5s）
-   - T054 [US6] 搜索延迟测试（100 记录 <1s）
-   - T055 [US6] 收藏操作测试（<1s）
-   - T056 [US6] storage 覆盖率测试（>=60%）
-
-4. **运行质量检查**：
-   ```bash
-   cargo test
-   cargo clippy
-   cargo fmt --check
-   ```
-
-5. **生成更新后的任务列表**：
-   ```bash
-   /speckit.tasks
-   ```
-
----
-
-**Generated**: 2026-01-29 | **Version**: 1.1 ( Updated)

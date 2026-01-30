@@ -4,7 +4,7 @@ use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Represents a favorited session
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -192,7 +192,7 @@ impl Storage {
     /// This provides useful context (display, project, timestamp) for each favorite
     pub fn list_favorites_with_details(
         &self,
-        history_path: &PathBuf,
+        history_path: &Path,
     ) -> Result<Vec<FavoriteWithDetails>, crate::error::Error> {
         let favorites = self.list_favorites();
 
