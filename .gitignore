@@ -1,7 +1,6 @@
 /target
 ~/.claude-memo/
 *.db
-*.toml
 
 # macOS
 .DS_Store
