@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <!-- 主渐变：绿色 AI 风格 -->
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+    </linearGradient>
+    <!-- 背景渐变 -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 圆形背景 -->
+  <circle cx="128" cy="128" r="120" fill="url(#bgGrad)"/>
+
+  <!-- 外圈装饰环 -->
+  <circle cx="128" cy="128" r="112" fill="none" stroke="#4ade80" stroke-width="2" opacity="0.35"/>
+
+  <!-- CM 字母组合 -->
+  <g transform="translate(43, 43)">
+    <!-- C 字母 - 粗线条圆形开口 -->
+    <path d="M115 50 A 55 55 0 1 0 115 125"
+          fill="none" stroke="url(#primaryGrad)" stroke-width="18" stroke-linecap="round"/>
+
+    <!-- M 字母 - 简洁折线 -->
+    <path d="M135 125 L135 50 L170 95 L205 50 L205 125"
+          fill="none" stroke="url(#primaryGrad)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
