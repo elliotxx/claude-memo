@@ -37,7 +37,7 @@ claude-memo search "agent" --json
 **Output (Text)**:
 
 ```
-2026-01-29 10:30 /Users/yym/workspace/project > /model
+2026-01-29 10:30 /Users/elliotxx/workspace/project > /model
 ```
 
 **Output (JSON)**:
@@ -47,7 +47,7 @@ claude-memo search "agent" --json
   {
     "display": "/model",
     "timestamp": 1766567616338,
-    "project": "/Users/yym/workspace/project",
+    "project": "/Users/elliotxx/workspace/project",
     "session_id": "abc123-def456-789",
     "score": -0.0
   }

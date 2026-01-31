@@ -6,7 +6,7 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/yourusername/claude-memo.git
+git clone https://github.com/elliotxx/claude-memo.git
 cd claude-memo
 
 # 安装依赖并构建

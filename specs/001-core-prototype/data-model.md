@@ -30,7 +30,7 @@
 ### Input: `~/.claude/history.jsonl`
 
 ```json
-{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/yym","sessionId":"d55aaa1c-b149-4aa4-9809-7eab1dba8d4c"}
+{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":"d55aaa1c-b149-4aa4-9809-7eab1dba8d4c"}
 ```
 
 ### Output: `~/.claude-memo/`
