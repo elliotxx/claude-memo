@@ -127,13 +127,13 @@ mod tests {
 
     #[test]
     fn test_parse_valid_line() {
-        let json = r#"{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/yym","sessionId":"d55aaa1c-b149-4aa4-9809-7eab1dba8d4c"}"#;
+        let json = r#"{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":"d55aaa1c-b149-4aa4-9809-7eab1dba8d4c"}"#;
         let result = parse_line(json);
         assert!(result.is_ok());
         let record = result.unwrap().unwrap();
         assert_eq!(record.display, "/model ");
         assert_eq!(record.timestamp, 1766567616338);
-        assert_eq!(record.project, "/Users/yym");
+        assert_eq!(record.project, "/Users/elliotxx");
         assert_eq!(record.session_id, "d55aaa1c-b149-4aa4-9809-7eab1dba8d4c");
     }
 
@@ -162,12 +162,12 @@ mod tests {
         let record = SessionRecord::new(
             "/model ".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "d55aaa1c-b149-4aa4-9809-7eab1dba8d4c".to_string(),
         );
         let display = record.to_string();
         assert!(display.contains("/model"));
-        assert!(display.contains("/Users/yym"));
+        assert!(display.contains("/Users/elliotxx"));
     }
 
     // === Edge Case Tests ===
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn test_parse_empty_session_id_fails() {
         // session_id is empty string, should fail validation
-        let json = r#"{"display":"/model","timestamp":1766567616338,"project":"/Users/yym","sessionId":""}"#;
+        let json = r#"{"display":"/model","timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":""}"#;
         let result = parse_line(json);
         assert!(result.is_err());
         let err = result.unwrap_err();
@@ -185,7 +185,7 @@ mod tests {
     #[test]
     fn test_parse_zero_timestamp_fails() {
         // timestamp is zero, should fail validation
-        let json = r#"{"display":"/model","timestamp":0,"project":"/Users/yym","sessionId":"abc123-def456"}"#;
+        let json = r#"{"display":"/model","timestamp":0,"project":"/Users/elliotxx","sessionId":"abc123-def456"}"#;
         let result = parse_line(json);
         assert!(result.is_err());
         let err = result.unwrap_err();
@@ -195,7 +195,7 @@ mod tests {
     #[test]
     fn test_parse_negative_timestamp_fails() {
         // timestamp is negative, should fail validation
-        let json = r#"{"display":"/model","timestamp":-1000,"project":"/Users/yym","sessionId":"abc123-def456"}"#;
+        let json = r#"{"display":"/model","timestamp":-1000,"project":"/Users/elliotxx","sessionId":"abc123-def456"}"#;
         let result = parse_line(json);
         assert!(result.is_err());
         let err = result.unwrap_err();
@@ -205,9 +205,9 @@ mod tests {
     #[test]
     fn test_parse_multiple_lines() {
         // Test parsing multiple lines in one string
-        let jsonl = r#"{"display":"/model","timestamp":1766567616338,"project":"/Users/yym","sessionId":"id-001"}
-{"display":"/search","timestamp":1766567617000,"project":"/Users/yym/project","sessionId":"id-002"}
-{"display":"/test","timestamp":1766567618000,"project":"/Users/yym/other","sessionId":"id-003"}"#;
+        let jsonl = r#"{"display":"/model","timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":"id-001"}
+{"display":"/search","timestamp":1766567617000,"project":"/Users/elliotxx/project","sessionId":"id-002"}
+{"display":"/test","timestamp":1766567618000,"project":"/Users/elliotxx/other","sessionId":"id-003"}"#;
 
         let lines: Vec<&str> = jsonl.lines().collect();
         assert_eq!(lines.len(), 3);
@@ -222,7 +222,7 @@ mod tests {
     #[test]
     fn test_parse_with_special_characters_in_display() {
         // Display with special characters should be preserved
-        let json = r#"{"display":"/model --option=value","timestamp":1766567616338,"project":"/Users/yym/project","sessionId":"abc123-def456"}"#;
+        let json = r#"{"display":"/model --option=value","timestamp":1766567616338,"project":"/Users/elliotxx/project","sessionId":"abc123-def456"}"#;
         let result = parse_line(json);
         assert!(result.is_ok());
         let record = result.unwrap().unwrap();
@@ -232,7 +232,7 @@ mod tests {
     #[test]
     fn test_parse_with_nested_project_path() {
         // Deeply nested project path
-        let json = r#"{"display":"/test","timestamp":1766567616338,"project":"/Users/yym/workspace/my-project/src/components","sessionId":"abc123-def456"}"#;
+        let json = r#"{"display":"/test","timestamp":1766567616338,"project":"/Users/elliotxx/workspace/my-project/src/components","sessionId":"abc123-def456"}"#;
         let result = parse_line(json);
         assert!(result.is_ok());
         let record = result.unwrap().unwrap();
@@ -245,7 +245,7 @@ mod tests {
         let record = SessionRecord::new(
             "/model".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "abc123-def456-789".to_string(),
         );
         let display = record.to_string();

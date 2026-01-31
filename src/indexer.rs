@@ -146,13 +146,13 @@ mod tests {
             SessionRecord::new(
                 "/model".to_string(),
                 1766567616338,
-                "/Users/yym".to_string(),
+                "/Users/elliotxx".to_string(),
                 "abc123".to_string(),
             ),
             SessionRecord::new(
                 "/search test".to_string(),
                 1766567617000,
-                "/Users/yym/project".to_string(),
+                "/Users/elliotxx/project".to_string(),
                 "def456".to_string(),
             ),
         ];
@@ -179,7 +179,7 @@ mod tests {
         let records = vec![SessionRecord::new(
             "/test".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "test-id".to_string(),
         )];
         indexer.build_index(&records).unwrap();

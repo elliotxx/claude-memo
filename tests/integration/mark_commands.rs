@@ -7,9 +7,9 @@ use tempfile::TempDir;
 
 fn create_test_history_file(temp_dir: &TempDir) -> std::path::PathBuf {
     let file_path = temp_dir.path().join("history.jsonl");
-    let content = r#"{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/yym","sessionId":"test-session-001"}
-{"display":"/search test query","pastedContents":{},"timestamp":1766567617000,"project":"/Users/yym/project","sessionId":"test-session-002"}
-{"display":"/another command","pastedContents":{},"timestamp":1766567618000,"project":"/Users/yym/other","sessionId":"test-session-003"}
+    let content = r#"{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":"test-session-001"}
+{"display":"/search test query","pastedContents":{},"timestamp":1766567617000,"project":"/Users/elliotxx/project","sessionId":"test-session-002"}
+{"display":"/another command","pastedContents":{},"timestamp":1766567618000,"project":"/Users/elliotxx/other","sessionId":"test-session-003"}
 "#;
     fs::write(&file_path, content).unwrap();
     file_path

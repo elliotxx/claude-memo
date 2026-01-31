@@ -7,9 +7,9 @@ use tempfile::TempDir;
 
 fn create_test_history_file(temp_dir: &TempDir) -> std::path::PathBuf {
     let file_path = temp_dir.path().join("history.jsonl");
-    let content = r#"{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/yym","sessionId":"d55aaa1c-b149-4aa4-9809-7eab1dba8d4c"}
-{"display":"/search test query","pastedContents":{},"timestamp":1766567617000,"project":"/Users/yym/project","sessionId":"abc123-def456-789"}
-{"display":"/another command","pastedContents":{},"timestamp":1766567618000,"project":"/Users/yym/other","sessionId":"xyz789-abc123-def"}
+    let content = r#"{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":"d55aaa1c-b149-4aa4-9809-7eab1dba8d4c"}
+{"display":"/search test query","pastedContents":{},"timestamp":1766567617000,"project":"/Users/elliotxx/project","sessionId":"abc123-def456-789"}
+{"display":"/another command","pastedContents":{},"timestamp":1766567618000,"project":"/Users/elliotxx/other","sessionId":"xyz789-abc123-def"}
 "#;
     fs::write(&file_path, content).unwrap();
     file_path
@@ -367,9 +367,9 @@ fn test_parse_with_invalid_jsonl_line() {
     // Test that parse handles invalid lines gracefully (skips them)
     let temp_dir = TempDir::new().unwrap();
     let file_path = temp_dir.path().join("mixed_history.jsonl");
-    let content = r#"{"display":"/valid","timestamp":1766567616338,"project":"/Users/yym","sessionId":"valid-001"}
+    let content = r#"{"display":"/valid","timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":"valid-001"}
 {invalid line here}
-{"display":"/also-valid","timestamp":1766567617000,"project":"/Users/yym","sessionId":"valid-002"}
+{"display":"/also-valid","timestamp":1766567617000,"project":"/Users/elliotxx","sessionId":"valid-002"}
 "#;
     fs::write(&file_path, content).unwrap();
 
@@ -585,9 +585,9 @@ fn test_search_results_ordered_by_timestamp() {
     let temp_dir = TempDir::new().unwrap();
     let file_path = temp_dir.path().join("ordered_history.jsonl");
     // Create records with different timestamps
-    let content = r#"{"display":"/older command","timestamp":1766567616000,"project":"/Users/yym","sessionId":"session-001"}
-{"display":"/newer command","timestamp":1766567619000,"project":"/Users/yym","sessionId":"session-002"}
-{"display":"/middle command","timestamp":1766567617500,"project":"/Users/yym","sessionId":"session-003"}
+    let content = r#"{"display":"/older command","timestamp":1766567616000,"project":"/Users/elliotxx","sessionId":"session-001"}
+{"display":"/newer command","timestamp":1766567619000,"project":"/Users/elliotxx","sessionId":"session-002"}
+{"display":"/middle command","timestamp":1766567617500,"project":"/Users/elliotxx","sessionId":"session-003"}
 "#;
     fs::write(&file_path, content).unwrap();
 
@@ -657,7 +657,7 @@ fn test_favorites_show_display_content() {
     // This provides useful context about what the session contains
     let temp_dir = TempDir::new().unwrap();
     let history_file = temp_dir.path().join("history.jsonl");
-    let content = r#"{"display":"/implement user authentication feature","timestamp":1766567616338,"project":"/Users/yym/project-a","sessionId":"session-with-content"}
+    let content = r#"{"display":"/implement user authentication feature","timestamp":1766567616338,"project":"/Users/elliotxx/project-a","sessionId":"session-with-content"}
 "#;
     fs::write(&history_file, content).unwrap();
 
@@ -687,7 +687,7 @@ fn test_favorites_show_project_info() {
     // Favorites display should show project path for context
     let temp_dir = TempDir::new().unwrap();
     let history_file = temp_dir.path().join("history.jsonl");
-    let content = r#"{"display":"/test command","timestamp":1766567616338,"project":"/Users/yym/my-awesome-project","sessionId":"project-session"}
+    let content = r#"{"display":"/test command","timestamp":1766567616338,"project":"/Users/elliotxx/my-awesome-project","sessionId":"project-session"}
 "#;
     fs::write(&history_file, content).unwrap();
 
@@ -715,7 +715,7 @@ fn test_favorites_json_includes_session_details() {
     // JSON output should include display, project, timestamp from history
     let temp_dir = TempDir::new().unwrap();
     let history_file = temp_dir.path().join("history.jsonl");
-    let content = r#"{"display":"/search database query","timestamp":1766567616338,"project":"/Users/yym/backend","sessionId":"json-detail-session"}
+    let content = r#"{"display":"/search database query","timestamp":1766567616338,"project":"/Users/elliotxx/backend","sessionId":"json-detail-session"}
 "#;
     fs::write(&history_file, content).unwrap();
 

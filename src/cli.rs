@@ -6,7 +6,7 @@ use std::path::PathBuf;
 /// Claude Code 会话记录管理工具
 #[derive(Parser, Debug)]
 #[command(name = "claude-memo")]
-#[command(author = "yym")]
+#[command(author = "elliotxx")]
 #[command(version = "0.1.0")]
 #[command(about = "Claude Code 会话记录管理工具", long_about = None)]
 pub struct Cli {

@@ -266,19 +266,19 @@ mod tests {
             SessionRecord::new(
                 "/model".to_string(),
                 1766567616338,
-                "/Users/yym".to_string(),
+                "/Users/elliotxx".to_string(),
                 "abc123".to_string(),
             ),
             SessionRecord::new(
                 "/search test query".to_string(),
                 1766567617000,
-                "/Users/yym/project".to_string(),
+                "/Users/elliotxx/project".to_string(),
                 "def456".to_string(),
             ),
             SessionRecord::new(
                 "/another search command".to_string(),
                 1766567618000,
-                "/Users/yym/other".to_string(),
+                "/Users/elliotxx/other".to_string(),
                 "ghi789".to_string(),
             ),
         ];
@@ -305,7 +305,7 @@ mod tests {
                 SessionRecord::new(
                     format!("/command {}", i),
                     1766567616000 + i as i64,
-                    "/Users/yym".to_string(),
+                    "/Users/elliotxx".to_string(),
                     format!("id-{}", i),
                 )
             })
@@ -326,7 +326,7 @@ mod tests {
         let records = vec![SessionRecord::new(
             "/test".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "abc123".to_string(),
         )];
 
@@ -346,13 +346,13 @@ mod tests {
             SessionRecord::new(
                 "/test".to_string(),
                 1766567616338,
-                "/Users/yym/project1".to_string(),
+                "/Users/elliotxx/project1".to_string(),
                 "abc123".to_string(),
             ),
             SessionRecord::new(
                 "/test".to_string(),
                 1766567617000,
-                "/Users/yym/project2".to_string(),
+                "/Users/elliotxx/project2".to_string(),
                 "def456".to_string(),
             ),
         ];
@@ -376,13 +376,13 @@ mod tests {
             SessionRecord::new(
                 "/model".to_string(),
                 1766567616338,
-                "/Users/yym".to_string(),
+                "/Users/elliotxx".to_string(),
                 "abc123".to_string(),
             ),
             SessionRecord::new(
                 "/search".to_string(),
                 1766567617000,
-                "/Users/yym/project".to_string(),
+                "/Users/elliotxx/project".to_string(),
                 "def456".to_string(),
             ),
         ];
@@ -406,7 +406,7 @@ mod tests {
         let records = vec![SessionRecord::new(
             "/test".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "test-id".to_string(),
         )];
         indexer.build_index(&records).unwrap();
@@ -435,7 +435,7 @@ mod tests {
         let records = vec![SessionRecord::new(
             "/test".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "abc123".to_string(),
         )];
 
@@ -455,7 +455,7 @@ mod tests {
         let records = vec![SessionRecord::new(
             "/model --option=value".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "abc123".to_string(),
         )];
 
@@ -474,7 +474,7 @@ mod tests {
         let records = vec![SessionRecord::new(
             "/very long command name for testing".to_string(),
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "abc123".to_string(),
         )];
 
@@ -495,13 +495,13 @@ mod tests {
             SessionRecord::new(
                 "/version 1.0".to_string(),
                 1766567616338,
-                "/Users/yym".to_string(),
+                "/Users/elliotxx".to_string(),
                 "id-001".to_string(),
             ),
             SessionRecord::new(
                 "/version 2.0".to_string(),
                 1766567617000,
-                "/Users/yym".to_string(),
+                "/Users/elliotxx".to_string(),
                 "id-002".to_string(),
             ),
         ];
@@ -521,7 +521,7 @@ mod tests {
         let records = vec![SessionRecord::new(
             "/MODEL".to_string(), // uppercase
             1766567616338,
-            "/Users/yym".to_string(),
+            "/Users/elliotxx".to_string(),
             "abc123".to_string(),
         )];
 
@@ -546,7 +546,7 @@ mod tests {
                 SessionRecord::new(
                     format!("/test command {}", i),
                     1766567616338 + i as i64,
-                    "/Users/yym/project".to_string(),
+                    "/Users/elliotxx/project".to_string(),
                     format!("session-{:05}", i / 10), // 1000 sessions
                 )
             })
@@ -590,7 +590,7 @@ mod tests {
                 SessionRecord::new(
                     format!("/search test query {}", i),
                     1766567616338 + i as i64,
-                    "/Users/yym".to_string(),
+                    "/Users/elliotxx".to_string(),
                     format!("session-{}", i),
                 )
             })
