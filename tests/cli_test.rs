@@ -15,6 +15,16 @@ fn create_test_history_file(temp_dir: &TempDir) -> std::path::PathBuf {
     file_path
 }
 
+/// Create a test command with isolated data directory
+fn create_test_command(temp_dir: &TempDir) -> Command {
+    // Set CLAUDE_MEMO_DATA_DIR to the full data directory path
+    let data_dir = temp_dir.path().join(".claude-memo");
+    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    cmd.env("CLAUDE_MEMO_DATA_DIR", data_dir)
+        .env("HOME", temp_dir.path());
+    cmd
+}
+
 #[test]
 fn test_parse_command() {
     let temp_dir = TempDir::new().unwrap();
@@ -62,7 +72,7 @@ fn test_search_command() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg("search")
@@ -76,7 +86,7 @@ fn test_search_command_json() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg("model")
@@ -91,7 +101,7 @@ fn test_search_no_results() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg("nonexistentkeyword123")
@@ -105,7 +115,7 @@ fn test_search_limit() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg("model")
@@ -139,12 +149,8 @@ fn test_favorite_add() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    // Use a custom data directory
-    let data_dir = temp_dir.path().join(".claude-memo");
-
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("test-session-123")
         .assert()
@@ -158,20 +164,16 @@ fn test_favorites_list() {
     let history_file = create_test_history_file(&temp_dir);
 
     // First add a favorite
-    let data_dir = temp_dir.path().join(".claude-memo");
-
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("test-session-456")
         .assert()
         .success();
 
     // Then list favorites
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .assert()
         .success()
@@ -184,18 +186,16 @@ fn test_unfavorite() {
     let history_file = create_test_history_file(&temp_dir);
 
     // First add a favorite
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("to-remove-session")
         .assert()
         .success();
 
     // Then remove it
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("unmark")
         .arg("to-remove-session")
         .assert()
@@ -211,18 +211,16 @@ fn test_favorite_already_exists() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("duplicate-session")
         .assert()
         .success();
 
     // Adding again should still succeed (idempotent)
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("duplicate-session")
         .assert()
@@ -235,9 +233,8 @@ fn test_favorite_with_special_chars() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("abc123-def456_789.012")
         .assert()
@@ -256,9 +253,8 @@ fn test_favorite_multiple_sessions() {
     let sessions = ["session-001", "session-002", "session-003"];
 
     for session in &sessions {
-        let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+        let mut cmd = create_test_command(&temp_dir);
         cmd.env("CLAUDE_HISTORY", &history_file)
-            .env("HOME", temp_dir.path())
             .arg("mark")
             .arg(session)
             .assert()
@@ -266,9 +262,8 @@ fn test_favorite_multiple_sessions() {
     }
 
     // Verify all are listed
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .assert()
         .success()
@@ -284,27 +279,24 @@ fn test_unfavorite_then_add_again() {
     let history_file = create_test_history_file(&temp_dir);
 
     // Add
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("recyclable-session")
         .assert()
         .success();
 
     // Remove
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("unmark")
         .arg("recyclable-session")
         .assert()
         .success();
 
     // Add again
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("recyclable-session")
         .assert()
@@ -321,9 +313,8 @@ fn test_favorite_empty_session_id() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("")
         .assert()
@@ -337,9 +328,8 @@ fn test_unfavorite_nonexistent_session() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("unmark")
         .arg("nonexistent-session-id")
         .assert()
@@ -354,7 +344,7 @@ fn test_search_with_empty_keyword() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg("") // Empty keyword
@@ -392,7 +382,7 @@ fn test_search_json_format() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg("model")
@@ -411,18 +401,16 @@ fn test_favorites_json_format() {
     let history_file = create_test_history_file(&temp_dir);
 
     // First add a favorite
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("json-test-session")
         .assert()
         .success();
 
     // Then list in JSON format
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .arg("--json")
         .assert()
@@ -452,9 +440,8 @@ fn test_favorites_empty_list() {
     let history_file = create_test_history_file(&temp_dir);
 
     // No favorites added - list should be empty
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .assert()
         .success()
@@ -517,9 +504,8 @@ fn test_unfavorite_from_empty_list() {
     let history_file = create_test_history_file(&temp_dir);
 
     // Try to unfavorite from empty list
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("unmark")
         .arg("nonexistent-session")
         .assert()
@@ -536,7 +522,7 @@ fn test_search_with_very_long_keyword() {
 
     let long_keyword = "this_is_a_very_long_search_keyword_that_exceeds_normal_length_requirements_and_should_not_crash_the_application_at_all";
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg(long_keyword)
@@ -551,7 +537,7 @@ fn test_search_output_includes_session_id() {
     let temp_dir = TempDir::new().unwrap();
     let history_file = create_test_history_file(&temp_dir);
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
         .arg("model")
@@ -591,7 +577,7 @@ fn test_search_results_ordered_by_timestamp() {
 "#;
     fs::write(&file_path, content).unwrap();
 
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &file_path)
         .arg("search")
         .arg("command")
@@ -619,9 +605,8 @@ fn test_favorites_persist_after_restart() {
     let history_file = create_test_history_file(&temp_dir);
 
     // First: add a favorite
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("persist-test-session")
         .assert()
@@ -640,9 +625,8 @@ fn test_favorites_persist_after_restart() {
     );
 
     // Third: list favorites should show the persisted favorite
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .assert()
         .success()
@@ -662,18 +646,16 @@ fn test_favorites_show_display_content() {
     fs::write(&history_file, content).unwrap();
 
     // Add favorite
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("session-with-content")
         .assert()
         .success();
 
     // List favorites should show display content
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .assert()
         .success()
@@ -692,18 +674,16 @@ fn test_favorites_show_project_info() {
     fs::write(&history_file, content).unwrap();
 
     // Add favorite
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("project-session")
         .assert()
         .success();
 
     // List favorites should show project info
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .assert()
         .success()
@@ -720,18 +700,16 @@ fn test_favorites_json_includes_session_details() {
     fs::write(&history_file, content).unwrap();
 
     // Add favorite
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("mark")
         .arg("json-detail-session")
         .assert()
         .success();
 
     // JSON output should include full session details
-    let mut cmd = Command::cargo_bin("claude-memo").unwrap();
+    let mut cmd = create_test_command(&temp_dir);
     cmd.env("CLAUDE_HISTORY", &history_file)
-        .env("HOME", temp_dir.path())
         .arg("marks")
         .arg("--json")
         .assert()

@@ -174,7 +174,7 @@ impl Storage {
             .collect();
 
         // Sort by favorited_at descending (most recent first)
-        favorites.sort_by(|a, b| b.favorited_at.cmp(&a.favorited_at));
+        favorites.sort_by_key(|b| std::cmp::Reverse(b.favorited_at));
         favorites
     }
 
@@ -248,16 +248,26 @@ impl Storage {
             .collect();
 
         // Sort by favorited_at descending (most recent first)
-        enriched.sort_by(|a, b| b.favorited_at.cmp(&a.favorited_at));
+        enriched.sort_by_key(|b| std::cmp::Reverse(b.favorited_at));
 
         Ok(enriched)
     }
 }
 
-/// Get the data directory path (~/.claude-memo/)
+/// Get the data directory path (~/.claude-memo)
+///
+/// Supports CLAUDE_MEMO_DATA_DIR environment variable for testing.
+/// When CLAUDE_MEMO_DATA_DIR is set, it is used as-is (user provides full path).
+/// Otherwise defaults to ~/.claude-memo
 fn get_data_dir() -> Result<PathBuf, crate::error::Error> {
-    let home = dirs::home_dir().ok_or(crate::error::Error::HomeDirNotFound)?;
-    Ok(home.join(".claude-memo"))
+    if let Ok(data_dir) = std::env::var("CLAUDE_MEMO_DATA_DIR") {
+        // User provides the full data directory path
+        Ok(PathBuf::from(data_dir))
+    } else {
+        // Use default ~/.claude-memo
+        let home = dirs::home_dir().ok_or(crate::error::Error::HomeDirNotFound)?;
+        Ok(home.join(".claude-memo"))
+    }
 }
 
 /// Load favorites from TOML file

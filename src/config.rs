@@ -53,10 +53,17 @@ pub fn get_config_path() -> PathBuf {
 }
 
 /// Get the data directory path
+///
+/// Supports CLAUDE_MEMO_DATA_DIR environment variable for testing.
+/// Defaults to ~/.claude-memo
 fn get_data_dir() -> PathBuf {
-    dirs::home_dir()
-        .unwrap_or(PathBuf::from("."))
-        .join(".claude-memo")
+    if let Ok(data_dir) = std::env::var("CLAUDE_MEMO_DATA_DIR") {
+        PathBuf::from(data_dir)
+    } else {
+        dirs::home_dir()
+            .unwrap_or(PathBuf::from("."))
+            .join(".claude-memo")
+    }
 }
 
 /// Load configuration from ~/.claude-memo/config.toml
