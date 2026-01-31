@@ -11,13 +11,19 @@ description: 发布 claude-memo 新版本（更新版本号、创建 Tag）
 
 ## 发布流程
 
-### 步骤 1: 检查前提条件
+### 步骤 1: 检查前提条件（必须通过）
 
 ```bash
 make check
 ```
 
-如果检查失败，修复问题后再继续。
+**如果检查失败，必须修复问题后才能继续发布！**
+
+检查项包括：
+- 代码格式化 (`cargo fmt`)
+- 代码质量检查 (`cargo clippy`)
+- 测试通过 (`cargo test`)
+- 构建成功 (`cargo build`)
 
 ### 步骤 2: 确定版本升级类型
 
@@ -57,6 +63,20 @@ git push --tags
 1. 访问 https://github.com/elliotxx/claude-memo/actions
 2. 确认 CI workflow 运行通过
 3. 如配置了 Release workflow，确认构建和发布成功
+
+### 步骤 6: 发布到 crates.io（手动）
+
+GitHub Actions 完成且构建成功后，手动发布到 crates.io：
+
+```bash
+# 1. 先 dry-run 预览
+cargo publish --dry-run
+
+# 2. 确认无误后执行发布
+cargo publish
+```
+
+> **注意**： crates.io 不支持 CI 自动发布，必须手动执行 `cargo publish`
 
 ## 快捷命令
 
