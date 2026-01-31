@@ -1,4 +1,4 @@
-.PHONY: help test test-unit test-integration check clippy fmt fmt-check build build-release coverage clean all run run-test
+.PHONY: help test test-unit test-integration check check-fix lint clippy fmt fmt-check build build-release coverage clean all run run-test
 
 # 默认目标：显示帮助
 .DEFAULT_GOAL := help
@@ -36,6 +36,8 @@ help: ## 显示帮助信息
 	@printf "  $(GREEN)make clippy$(RESET)         代码质量检查\n"
 	@printf "  $(GREEN)make fmt-check$(RESET)      代码格式检查\n"
 	@printf "  $(GREEN)make all$(RESET)            运行所有验证\n"
+	@printf "  $(GREEN)make check$(RESET)          运行所有检查 (fmt + clippy + test)\n"
+	@printf "  $(GREEN)make check-fix$(RESET)      修复所有检查问题并运行测试\n"
 	@echo ""
 	@echo "构建:"
 	@printf "  $(GREEN)make build$(RESET)          开发构建\n"
@@ -75,10 +77,17 @@ test-integration: ## 运行集成测试
 ## 代码质量命令
 ## ============================================================================
 
-check: ## 代码编译检查
-	$(info 运行 cargo check...)
-	cargo check
-	$(done "编译检查通过")
+check: lint test ## 运行所有检查 (fmt + clippy + test)
+	$(done "所有检查通过")
+
+check-fix: fmt-fix ## 修复所有检查问题并运行测试
+	$(info 运行 clippy fix...)
+	@cargo clippy --all-features --fix --allow-staged --allow-dirty 2>/dev/null || true
+	$(info 运行测试...)
+	cargo test --all-features --verbose
+	$(done "所有检查已修复")
+
+lint: fmt clippy ## 代码检查 (fmt + clippy)
 
 clippy: ## 代码质量检查
 	$(info 运行 cargo clippy...)
@@ -134,9 +143,9 @@ coverage: ## 生成测试覆盖率报告
 # 确保 mock 数据存在
 $(MOCK_HISTORY):
 	@mkdir -p $(MOCK_DIR)
-	@echo '{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/yym","sessionId":"mock-001"}' > $@
-	@echo '{"display":"/search test query","pastedContents":{},"timestamp":1766567617000,"project":"/Users/yym/project","sessionId":"mock-002"}' >> $@
-	@echo '{"display":"/another command","pastedContents":{},"timestamp":1766567618000,"project":"/Users/yym/other","sessionId":"mock-003"}' >> $@
+	@echo '{"display":"/model ","pastedContents":{},"timestamp":1766567616338,"project":"/Users/elliotxx","sessionId":"mock-001"}' > $@
+	@echo '{"display":"/search test query","pastedContents":{},"timestamp":1766567617000,"project":"/Users/elliotxx/project","sessionId":"mock-002"}' >> $@
+	@echo '{"display":"/another command","pastedContents":{},"timestamp":1766567618000,"project":"/Users/elliotxx/other","sessionId":"mock-003"}' >> $@
 	$(done "Mock 数据已生成")
 
 run: ## 运行（加载 ~/.claude/history.jsonl）
@@ -151,5 +160,5 @@ run-test: $(MOCK_HISTORY) ## 运行测试（加载 tests/mock/history.jsonl）
 ## 完整验证
 ## ============================================================================
 
-all: check fmt clippy test ## 运行所有验证
+all: check ## 运行所有验证
 	$(done "所有验证通过，可以提交代码")
