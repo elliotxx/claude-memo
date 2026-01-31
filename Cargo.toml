@@ -3,7 +3,7 @@ name = "claude-memo"
 version = "0.1.0"
 edition = "2021"
 description = "Claude Code session record management tool"
-authors = ["yym"]
+authors = ["elliotxx"]
 
 [dependencies]
 clap = { version = "4.4", features = ["derive"] }
