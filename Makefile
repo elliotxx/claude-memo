@@ -94,15 +94,15 @@ clippy: ## 代码质量检查
 	cargo clippy -- -D warnings
 	$(done "代码质量检查通过")
 
-fmt: ## 代码格式化
-	$(info 格式化代码...)
-	cargo fmt
-	$(done "代码格式化完成")
-
-fmt-check: ## 代码格式检查
+fmt: ## 代码格式检查
 	$(info 检查代码格式...)
 	@cargo fmt --check -- --color=never
 	@$(done "代码格式正确")
+
+fmt-fix: ## 代码格式化
+	$(info 格式化代码...)
+	cargo fmt
+	$(done "代码格式化完成")
 
 ## ============================================================================
 ## 构建命令

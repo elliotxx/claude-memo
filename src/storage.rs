@@ -493,9 +493,9 @@ mod tests {
         };
 
         let special_id = "abc123-def456_789.012";
-        let result = storage.add_favorite(&special_id);
+        let result = storage.add_favorite(special_id);
         assert!(result.is_ok());
-        assert!(storage.is_favorited(&special_id));
+        assert!(storage.is_favorited(special_id));
     }
 
     // === Performance Tests ===

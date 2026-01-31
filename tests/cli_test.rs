@@ -539,7 +539,7 @@ fn test_search_with_very_long_keyword() {
     let mut cmd = Command::cargo_bin("claude-memo").unwrap();
     cmd.env("CLAUDE_HISTORY", &history_file)
         .arg("search")
-        .arg(&long_keyword)
+        .arg(long_keyword)
         .assert()
         .success(); // Should not crash
 }
