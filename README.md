@@ -9,8 +9,8 @@
   Claude Code 会话记录管理工具。快速搜索、收藏你的 AI 对话历史。
 
   <div align="center">
-    <a href="https://github.com/yym/claude-memo/actions"><img alt="CI Status" src="https://img.shields.io/github/actions/workflow/status/yym/claude-memo?logo=github"/></a>
-    <a href="https://github.com/yym/claude-memo/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-green"/></a>
+    <a href="https://github.com/elliotxx/claude-memo/actions"><img alt="CI Status" src="https://img.shields.io/github/actions/workflow/status/elliotxx/claude-memo?logo=github"/></a>
+    <a href="https://github.com/elliotxx/claude-memo/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-green"/></a>
     <a href="https://www.rust-lang.org/"><img alt="Rust" src="https://img.shields.io/badge/Rust-1.83+-orange.svg"/></a>
   </div>
 
@@ -41,7 +41,7 @@
 
 ```bash
 # 从源码安装
-git clone https://github.com/yym/claude-memo.git
+git clone https://github.com/elliotxx/claude-memo.git
 cd claude-memo
 cargo build --release
 cargo install --path .
@@ -99,11 +99,11 @@ claude-memo parse --json          # JSON 格式输出
 ```
 $ claude-memo search "authentication"
 
-[2024-03-15 14:30] /Users/yym/project-a
+[2024-03-15 14:30] /Users/elliotxx/project-a
 [🔍 Score: 5.2] Implement user authentication feature
 Session ID: abc123-def456-789
 
-[2024-03-14 09:15] /Users/yym/project-b
+[2024-03-14 09:15] /Users/elliotxx/project-b
 [🔍 Score: 3.1] Add OAuth2 authentication
 Session ID: xyz789-abc123-def
 ```
@@ -117,7 +117,7 @@ $ claude-memo mark abc123-def456-789
 $ claude-memo marks
 
 ⭐ [2024-03-15 14:30] Implement user authentication feature
-   /Users/yym/project-a | Session: abc123-def456-789
+   /Users/elliotxx/project-a | Session: abc123-def456-789
 ```
 
 ### JSON 输出
@@ -129,7 +129,7 @@ $ claude-memo marks
     {
       "display": "Implement user authentication feature",
       "timestamp": "2024-03-15 14:30:00",
-      "project": "/Users/yym/project-a",
+      "project": "/Users/elliotxx/project-a",
       "session_id": "abc123-def456-789",
       "score": 5.2
     }
@@ -144,7 +144,7 @@ $ claude-memo marks
 ### 从源码安装
 
 ```bash
-git clone https://github.com/yym/claude-memo.git
+git clone https://github.com/elliotxx/claude-memo.git
 cd claude-memo
 cargo build --release
 cargo install --path .
@@ -271,7 +271,7 @@ cargo test test_name
 
 ```bash
 # Fork 仓库后克隆
-git clone https://github.com/YOUR_USERNAME/claude-memo.git
+git clone https://github.com/elliotxx/claude-memo.git
 cd claude-memo
 
 # 安装依赖（见上方 Installation）
